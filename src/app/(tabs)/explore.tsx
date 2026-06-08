@@ -1,9 +1,9 @@
 import { Text, View } from "react-native";
 
-export default function ProfilePage() {
+export default function ExplorePage() {
   return (
     <View>
-      <Text>Profile</Text>
+      <Text>Explore</Text>
     </View>
   );
 }
