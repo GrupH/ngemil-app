@@ -9,7 +9,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (loading) return;
 
-    router.replace("/(tabs)");
+    router.replace("/");
 
     /*     if (!user) {
       router.replace("/auth");
@@ -18,9 +18,5 @@ export default function RootLayout() {
     } */
   }, [user, loading, router]);
 
-  return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
-  );
+  return <Stack screenOptions={{ headerShown: false }}></Stack>;
 }

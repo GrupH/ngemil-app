@@ -1,13 +1,10 @@
-import Mapbox from "@rnmapbox/maps";
-import { StyleSheet, View } from "react-native";
-
-Mapbox.setAccessToken("process.env.MAPBOX_API_KEY");
+import { StyleSheet, Text, View } from "react-native";
 
 const App = () => {
   return (
     <View style={styles.page}>
       <View style={styles.container}>
-        <Mapbox.MapView style={styles.map} />
+        <Text>Test</Text>
       </View>
     </View>
   );
