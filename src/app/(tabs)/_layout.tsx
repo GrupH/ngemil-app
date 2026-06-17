@@ -19,15 +19,22 @@ export default function TabLayout() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: "explore",
-          tabBarLabel: "explore",
+          title: "Explore",
+          tabBarLabel: "Explore",
+        }}
+      />
+      <Tabs.Screen
+        name="map"
+        options={{
+          title: "Map",
+          tabBarLabel: "Map",
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "profile",
-          tabBarLabel: "profile",
+          title: "Profile",
+          tabBarLabel: "Profile",
         }}
       />
     </Tabs>

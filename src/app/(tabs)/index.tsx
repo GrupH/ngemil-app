@@ -1,9 +1,31 @@
-import { Text, View } from "react-native";
+import Mapbox from "@rnmapbox/maps";
+import { StyleSheet, View } from "react-native";
 
-export default function HomePage() {
+Mapbox.setAccessToken("process.env.MAPBOX_API_KEY");
+
+const App = () => {
   return (
-    <View>
-      <Text>Home</Text>
+    <View style={styles.page}>
+      <View style={styles.container}>
+        <Mapbox.MapView style={styles.map} />
+      </View>
     </View>
   );
-}
+};
+
+export default App;
+
+const styles = StyleSheet.create({
+  page: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  container: {
+    height: "100%",
+    width: "100%",
+  },
+  map: {
+    flex: 1,
+  },
+});
