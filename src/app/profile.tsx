@@ -1,38 +1,68 @@
+import BackButton from "@/components/BackButton";
 import { colours } from "@/constants/style";
 import { useAuth } from "@/hooks/auth";
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const router = useRouter();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.email}>{user?.email}</Text>
+  const handleBack = () => {
+    router.back();
+  };
 
-      <TouchableOpacity style={styles.button} onPress={handleSignOut}>
-        <Text style={styles.buttonText}>Sign Out</Text>
-      </TouchableOpacity>
-    </View>
+  return (
+    <SafeAreaView style={styles.page}>
+      <View style={styles.container}>
+        <View style={styles.topSection}>
+          <BackButton onPress={handleBack} />
+          <View style={styles.content}>
+            <Text style={styles.title}>Akun Saya</Text>
+            <Text style={styles.email}>{user?.email}</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.button} onPress={handleSignOut}>
+          <Text style={styles.buttonText}>Sign Out</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  page: {
     flex: 1,
     backgroundColor: colours.primary_bg,
+  },
+  container: {
+    flex: 1,
     justifyContent: "space-between",
     paddingHorizontal: 24,
-    paddingTop: 80,
+    paddingTop: 16,
     paddingBottom: 40,
   },
+  topSection: {
+    gap: 24,
+  },
+  content: {
+    gap: 8,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: colours.heading,
+  },
   email: {
-    fontSize: 20,
-    color: colours.text_secondary,
+    fontSize: 18,
+    color: colours.text_primary,
   },
   button: {
     backgroundColor: colours.accent_1,
@@ -49,3 +79,4 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 });
+

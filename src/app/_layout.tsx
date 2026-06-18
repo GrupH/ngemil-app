@@ -11,11 +11,11 @@ export default function RootLayout() {
 
     router.replace("/");
 
-    /*     if (!user) {
+    if (!user) {
       router.replace("/auth");
     } else if (user) {
-      router.replace("/(tabs)");
-    } */
+      router.replace("/");
+    }
   }, [user, loading, router]);
 
   return <Stack screenOptions={{ headerShown: false }}></Stack>;
