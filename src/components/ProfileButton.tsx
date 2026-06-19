@@ -10,10 +10,7 @@ export default function ProfileButton({ onPress }: ProfileButtonProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.button,
-        pressed && styles.pressed,
-      ]}
+      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
     >
       <User color={colours.accent_1} size={22} strokeWidth={2.5} />
     </Pressable>

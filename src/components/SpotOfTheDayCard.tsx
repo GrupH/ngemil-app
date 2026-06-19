@@ -25,22 +25,19 @@ export default function SpotOfTheDayCard({
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.card,
-        pressed && styles.pressedCard,
-      ]}
+      style={({ pressed }) => [styles.card, pressed && styles.pressedCard]}
     >
       {/* Top Image Section */}
       <View style={styles.imageContainer}>
         <Image source={{ uri: imageUrl }} style={styles.image} />
-        
+
         {/* Floating Stats Pill */}
         <View style={styles.statsPill}>
           <Star color="#949FF1" fill="#949FF1" size={14} />
           <Text style={styles.statsText}>{rating.toFixed(1)}</Text>
-          
+
           <Text style={styles.bullet}>•</Text>
-          
+
           <View style={styles.iconContainer}>
             <MapPin color="#949FF1" fill="#949FF1" size={14} />
             <View style={styles.iconHole} />
@@ -52,7 +49,7 @@ export default function SpotOfTheDayCard({
       {/* Bottom Content Section */}
       <View style={styles.content}>
         <Text style={styles.title}>{title}</Text>
-        
+
         {/* Tags Row */}
         <View style={styles.tagRow}>
           {tags.map((tag) => (

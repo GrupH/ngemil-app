@@ -10,10 +10,7 @@ export default function BackButton({ onPress }: BackButtonProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.button,
-        pressed && styles.pressed,
-      ]}
+      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
     >
       <ArrowLeft color={colours.accent_1} size={22} strokeWidth={2.5} />
     </Pressable>
