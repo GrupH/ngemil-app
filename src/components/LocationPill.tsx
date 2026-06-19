@@ -10,10 +10,7 @@ export default function LocationPill({ onPress, title }: LocationPillProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.pill,
-        pressed && styles.pressedPill,
-      ]}
+      style={({ pressed }) => [styles.pill, pressed && styles.pressedPill]}
     >
       <View style={styles.iconContainer}>
         <MapPin color="#C6B6FC" fill="#C6B6FC" size={18} />

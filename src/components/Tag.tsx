@@ -5,16 +5,18 @@ type TagType = "Bakery" | "Halal" | "Cafe" | string;
 type TagProps = {
   text: TagType;
   small?: boolean;
+  count?: number;
 };
 
 const TAG_COLORS: Record<string, { bg: string; text: string }> = {
   Bakery: { bg: "#FAF3E0", text: "#C59B27" },
+  Japanese: { bg: "#FAF3E0", text: "#C59B27" },
   Halal: { bg: "#E8F8EC", text: "#52B752" },
   Cafe: { bg: "#F0EBFE", text: "#9875F6" },
   default: { bg: "#EDF0FE", text: "#726E83" },
 };
 
-export default function Tag({ text, small = false }: TagProps) {
+export default function Tag({ text, small = false, count }: TagProps) {
   const colors = TAG_COLORS[text] || TAG_COLORS.default;
 
   return (
@@ -25,8 +27,15 @@ export default function Tag({ text, small = false }: TagProps) {
         { backgroundColor: colors.bg },
       ]}
     >
-      <Text style={[styles.text, small ? styles.textSmall : styles.textNormal, { color: colors.text }]}>
+      <Text
+        style={[
+          styles.text,
+          small ? styles.textSmall : styles.textNormal,
+          { color: colors.text },
+        ]}
+      >
         {text}
+        {count !== undefined && <Text style={styles.tagCount}> {count}</Text>}
       </Text>
     </View>
   );
@@ -55,5 +64,8 @@ const styles = StyleSheet.create({
   textSmall: {
     fontSize: 10,
   },
+  tagCount: {
+    fontWeight: "500",
+    opacity: 0.8,
+  },
 });
-

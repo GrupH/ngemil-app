@@ -78,5 +78,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 15,
   },
+  signOutPressed: {
+    opacity: 0.9,
+    backgroundColor: "#FFF5F4",
+  },
+  versionText: {
+    textAlign: "center",
+    fontSize: 11,
+    color: colours.text_secondary,
+    marginTop: 8,
+  },
 });
-
