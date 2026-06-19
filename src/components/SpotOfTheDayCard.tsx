@@ -66,7 +66,7 @@ export default function SpotOfTheDayCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 24,
+    borderRadius: 12,
     borderColor: "#EDF0FE",
     borderWidth: 2,
     overflow: "hidden",

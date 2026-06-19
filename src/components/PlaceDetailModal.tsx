@@ -1,8 +1,10 @@
-import Tag from "@/components/Tag";
+import PhotoCarousel from "@/components/PhotoCarousel";
+import ReviewsSection, { Review } from "@/components/ReviewsSection";
+import TagsSection from "@/components/TagsSection";
+import TopMenusSection, { MenuItem } from "@/components/TopMenusSection";
 import { colours } from "@/constants/style";
-import { MapPin, Plus, Star } from "lucide-react-native";
+import { MapPin, Star } from "lucide-react-native";
 import {
-  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -20,13 +22,8 @@ export type PlaceData = {
   tags: string[];
   description: string;
   photos?: string[];
-  reviews?: {
-    id: string;
-    username: string;
-    rating: number;
-    avatar: string;
-    comment: string;
-  }[];
+  reviews?: Review[];
+  menuItems?: MenuItem[];
 };
 
 type PlaceDetailModalProps = {
@@ -90,96 +87,20 @@ export default function PlaceDetailModal({
               </View>
             </View>
 
-            {/* Photos Grid */}
-            <View style={styles.photosGrid}>
-              {/* Left/Main Photo */}
-              <View
-                style={[
-                  styles.leftPhotoContainer,
-                  photos.length < 3 && { flex: 1 },
-                ]}
-              >
-                <Image source={{ uri: photos[0] }} style={styles.photo} />
-              </View>
+            {/* Photos Carousel */}
+            <PhotoCarousel photos={photos} />
 
-              {/* If exactly 2 photos, render second photo as a full-height side-by-side panel */}
-              {photos.length === 2 && (
-                <View style={{ flex: 1, borderRadius: 20, overflow: "hidden" }}>
-                  <Image source={{ uri: photos[1] }} style={styles.photo} />
-                </View>
-              )}
-
-              {/* If 3 or more photos, render standard right-side panel */}
-              {photos.length >= 3 && (
-                <View style={styles.rightPhotosContainer}>
-                  <View style={styles.rightPhotoTop}>
-                    <Image source={{ uri: photos[1] }} style={styles.photo} />
-                  </View>
-                  <View style={styles.rightPhotoBottom}>
-                    <Image source={{ uri: photos[2] }} style={styles.photo} />
-                    {photos.length > 3 && (
-                      <View style={styles.photoOverlay}>
-                        <Text style={styles.overlayText}>
-                          +{photos.length - 3} Photos
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
-              )}
-            </View>
+            {/* Description */}
+            <Text style={styles.descriptionText}>{place.description}</Text>
 
             {/* TAGS Section */}
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionHeading}>TAGS</Text>
-              <View style={styles.tagRow}>
-                {place.tags.map((tag, index) => {
-                  const count = 10 + index * 5 + (tag.length % 7);
-                  return <Tag key={tag} text={tag} count={count} />;
-                })}
-                <View style={styles.addTagButton}>
-                  <Plus color="#8B889E" size={14} />
-                  <Text style={styles.addTagText}>Add</Text>
-                </View>
-              </View>
-            </View>
+            <TagsSection tags={place.tags} />
+
+            {/* TOP MENUS Section */}
+            <TopMenusSection menuItems={place.menuItems || []} />
 
             {/* REVIEWS Section */}
-            {reviews.length > 0 && (
-              <View style={styles.sectionContainer}>
-                <Text style={styles.sectionHeading}>REVIEWS</Text>
-                <View style={styles.reviewsList}>
-                  {reviews.map((review) => (
-                    <View key={review.id} style={styles.reviewCard}>
-                      <View style={styles.reviewHeader}>
-                        <View style={styles.avatarContainer}>
-                          <Image
-                            source={{ uri: review.avatar }}
-                            style={styles.avatar}
-                          />
-                        </View>
-                        <View style={styles.reviewUserMeta}>
-                          <Text style={styles.username}>{review.username}</Text>
-                          <View style={styles.starsRow}>
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <Star
-                                key={i}
-                                color={
-                                  i < review.rating ? "#949FF1" : "#E5E5E5"
-                                }
-                                fill={i < review.rating ? "#949FF1" : "#E5E5E5"}
-                                size={12}
-                              />
-                            ))}
-                          </View>
-                        </View>
-                      </View>
-                      <Text style={styles.reviewText}>{review.comment}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
+            <ReviewsSection reviews={reviews} />
           </ScrollView>
         </Pressable>
       </Pressable>
@@ -244,122 +165,10 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: colours.text_secondary,
   },
-  photosGrid: {
-    flexDirection: "row",
-    height: 180,
-    gap: 12,
+  descriptionText: {
+    fontSize: 14,
+    color: "#605E70",
+    lineHeight: 22,
     marginBottom: 24,
-  },
-  leftPhotoContainer: {
-    flex: 1.1,
-    borderRadius: 20,
-    overflow: "hidden",
-  },
-  rightPhotosContainer: {
-    flex: 0.9,
-    flexDirection: "column",
-    gap: 12,
-  },
-  rightPhotoTop: {
-    flex: 1,
-    borderRadius: 20,
-    overflow: "hidden",
-  },
-  rightPhotoBottom: {
-    flex: 1,
-    borderRadius: 20,
-    overflow: "hidden",
-    position: "relative",
-  },
-  photo: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
-  photoOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  overlayText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  sectionContainer: {
-    marginBottom: 24,
-  },
-  sectionHeading: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: colours.heading,
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-  tagRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  addTagButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#EDF0FE",
-    borderStyle: "dashed",
-    backgroundColor: "transparent",
-  },
-  addTagText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#8B889E",
-  },
-  reviewsList: {
-    gap: 12,
-  },
-  reviewCard: {
-    backgroundColor: "#F9F9F6",
-    borderRadius: 20,
-    padding: 16,
-    gap: 8,
-  },
-  reviewHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  avatarContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#EDF0FE",
-    overflow: "hidden",
-  },
-  avatar: {
-    width: "100%",
-    height: "100%",
-  },
-  reviewUserMeta: {
-    justifyContent: "center",
-    gap: 2,
-  },
-  username: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: colours.text_primary,
-  },
-  starsRow: {
-    flexDirection: "row",
-    gap: 2,
-  },
-  reviewText: {
-    fontSize: 11,
-    color: colours.text_primary,
-    lineHeight: 16,
   },
 });

@@ -52,9 +52,9 @@ export default function NearbySpotCard({
           {title}
         </Text>
 
-        {/* Tags Row */}
+        {/* Tags Row - Slice to 2 tags to prevent wrap height misalignment */}
         <View style={styles.tagRow}>
-          {tags.slice(0, 3).map((tag) => (
+          {tags.slice(0, 2).map((tag) => (
             <Tag key={tag} text={tag} small />
           ))}
         </View>
@@ -70,21 +70,21 @@ export default function NearbySpotCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 20,
+    borderRadius: 12,
     borderColor: "#EDF0FE",
     borderWidth: 2,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.02,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowColor: "#0A0B1A",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 3,
   },
   pressedCard: {
     opacity: 0.95,
   },
   imageContainer: {
-    height: 120,
+    height: 130,
     width: "100%",
     position: "relative",
   },
@@ -103,6 +103,11 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 9999,
     gap: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   statsText: {
     fontSize: 10,
@@ -140,7 +145,6 @@ const styles = StyleSheet.create({
   tagRow: {
     flexDirection: "row",
     gap: 4,
-    flexWrap: "wrap",
   },
   description: {
     fontSize: 12,
