@@ -5,6 +5,7 @@
   "dependencies": {
     "@expo/ui": "~56.0.15",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@rnmapbox/maps": "^10.3.1",
     "@supabase/supabase-js": "^2.108.2",
     "babel-preset-expo": "^56.0.14",
     "expo": "~56.0.8",
@@ -22,6 +23,7 @@
     "expo-system-ui": "~56.0.5",
     "expo-web-browser": "~56.0.5",
     "lucide-react-native": "^1.20.0",
+    "mapbox": "^1.0.0-beta10",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.85.3",

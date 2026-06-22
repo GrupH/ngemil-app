@@ -7,7 +7,7 @@ import SpotOfTheDayCard from "@/components/SpotOfTheDayCard";
 import { colours } from "@/constants/style";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const NEARBY_SPOTS = [
@@ -334,7 +334,11 @@ const App = () => {
         </View>
 
         {/* Map Card Placeholder */}
-        <View style={styles.mapCard} />
+        <View style={styles.mapCard}>
+          <Pressable onPress={() => router.push('/map')} style={styles.openMapButton}>
+            <Text>Expand</Text>
+          </Pressable>
+        </View>
 
         {/* Search Bar Section */}
         <View style={styles.searchBarContainer}>
@@ -505,4 +509,14 @@ const styles = StyleSheet.create({
   gridColumn: {
     width: "47.5%",
   },
+  openMapButton: {
+    width: 44,
+    height: 22,
+    borderRadius: 12,
+    backgroundColor: colours.accent_1,
+    borderWidth: 2,
+    borderColor: colours.border_1,
+    justifyContent: "center",
+    alignItems: "center",
+  }
 });
