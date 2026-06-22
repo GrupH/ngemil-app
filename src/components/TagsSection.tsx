@@ -1,7 +1,6 @@
 import Tag from "@/components/Tag";
 import { colours } from "@/constants/style";
 import { Plus } from "lucide-react-native";
-import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 type TagsSectionProps = {

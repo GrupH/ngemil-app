@@ -1,22 +1,5 @@
-import { useAuth } from "@/hooks/auth";
-import { Stack, useRouter } from "expo-router";
-import { useEffect } from "react";
+import { Stack } from "expo-router";
 
 export default function RootLayout() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (loading) return;
-
-    router.replace("/");
-
-    if (!user) {
-      router.replace("/auth");
-    } else if (user) {
-      router.replace("/");
-    }
-  }, [user, loading, router]);
-
   return <Stack screenOptions={{ headerShown: false }}></Stack>;
 }
