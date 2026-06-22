@@ -25,13 +25,28 @@ export default function ProfilePage() {
           <BackButton onPress={handleBack} />
           <View style={styles.content}>
             <Text style={styles.title}>Akun Saya</Text>
-            <Text style={styles.email}>{user?.email}</Text>
+            {user ? (
+              <Text style={styles.email}>{user?.email}</Text>
+            ) : (
+              <Text style={styles.emailPlaceholder}>
+                Silakan masuk untuk mengakses profil Anda.
+              </Text>
+            )}
           </View>
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleSignOut}>
-          <Text style={styles.buttonText}>Sign Out</Text>
-        </TouchableOpacity>
+        {user ? (
+          <TouchableOpacity style={styles.button} onPress={handleSignOut}>
+            <Text style={styles.buttonText}>Sign Out</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.push("/auth")}
+          >
+            <Text style={styles.buttonText}>Masuk / Daftar</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -63,6 +78,11 @@ const styles = StyleSheet.create({
   email: {
     fontSize: 18,
     color: colours.text_primary,
+  },
+  emailPlaceholder: {
+    fontSize: 15,
+    color: colours.text_secondary,
+    lineHeight: 22,
   },
   button: {
     backgroundColor: colours.accent_1,

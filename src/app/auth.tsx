@@ -1,5 +1,7 @@
+import BackButton from "@/components/BackButton";
 import { colours } from "@/constants/style";
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -14,6 +16,7 @@ import {
 } from "react-native";
 
 export default function AuthScreen() {
+  const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,7 +42,6 @@ export default function AuthScreen() {
     setLoading(true);
     setError("");
 
-    // Trim whitespace from email
     const cleanEmail = email.trim();
 
     const { error } = isLogin
@@ -48,6 +50,12 @@ export default function AuthScreen() {
 
     if (error) {
       setError(error.message);
+    } else {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace("/profile");
+      }
     }
 
     setLoading(false);
@@ -55,7 +63,7 @@ export default function AuthScreen() {
 
   const handleToggle = () => {
     setIsLogin(!isLogin);
-    setError(""); // Clear error on layout switch
+    setError("");
   };
 
   return (
@@ -68,6 +76,17 @@ export default function AuthScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.content}>
+          <View style={{ marginBottom: 24 }}>
+            <BackButton
+              onPress={() => {
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.replace("/");
+                }
+              }}
+            />
+          </View>
           <Text style={styles.title}>{isLogin ? "LOGIN" : "SIGN UP"}</Text>
           <Text style={styles.subtitle}>
             {isLogin
