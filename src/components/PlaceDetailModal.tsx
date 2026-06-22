@@ -58,15 +58,13 @@ export default function PlaceDetailModal({
           style={styles.modalContent}
           onPress={(e) => e.stopPropagation()}
         >
-          {/* Drag handle */}
-          <View style={styles.dragHandleContainer}>
-            <View style={styles.dragHandle} />
-          </View>
+          {/* Main info section (not scrollable) */}
+          <View style={styles.infoContainer}>
+            {/* Drag handle */}
+            <View style={styles.dragHandleContainer}>
+              <View style={styles.dragHandle} />
+            </View>
 
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-          >
             {/* Title */}
             <Text style={styles.placeTitle}>{place.title}</Text>
 
@@ -92,7 +90,13 @@ export default function PlaceDetailModal({
 
             {/* Description */}
             <Text style={styles.descriptionText}>{place.description}</Text>
+          </View>
 
+          {/* Scrollable section */}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
             {/* TAGS Section */}
             <TagsSection tags={place.tags} />
 
@@ -134,8 +138,16 @@ const styles = StyleSheet.create({
     borderRadius: 2.5,
     backgroundColor: "#E5E5E5",
   },
+  infoContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: colours.border_1,
+    marginHorizontal: -24,
+    paddingHorizontal: 24,
+    marginTop: 16,
+    paddingTop: 16,
+  },
   scrollContent: {
-    paddingBottom: 24,
+    paddingVertical: 24,
   },
   placeTitle: {
     fontSize: 22,
