@@ -1,6 +1,6 @@
 export const colours = {
   primary_bg: "#F9F9F6",
-  secondary_bg: "FFFFFF",
+  secondary_bg: "#FFFFFF",
   border_1: "#EDF0FE",
   border_2: "#726E83",
   accent_1: "#949FF1",

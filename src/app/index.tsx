@@ -6,6 +6,7 @@ import SearchBar from "@/components/SearchBar";
 import SpotOfTheDayCard from "@/components/SpotOfTheDayCard";
 import { colours } from "@/constants/style";
 import { useRouter } from "expo-router";
+import { Expand } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -335,8 +336,12 @@ const App = () => {
 
         {/* Map Card Placeholder */}
         <View style={styles.mapCard}>
-          <Pressable onPress={() => router.push('/map')} style={styles.openMapButton}>
-            <Text>Expand</Text>
+          <Pressable
+            onPress={() => router.push("/map")}
+            style={styles.openMapButton}
+          >
+            <Expand size={16} color={colours.secondary_bg} />
+            <Text style={styles.openMapButtonText}>Expand</Text>
           </Pressable>
         </View>
 
@@ -481,6 +486,7 @@ const styles = StyleSheet.create({
     borderColor: "#EDF0FE",
     borderWidth: 2,
     marginTop: 24,
+    padding: 16,
   },
   searchBarContainer: {
     marginTop: 24,
@@ -510,13 +516,23 @@ const styles = StyleSheet.create({
     width: "47.5%",
   },
   openMapButton: {
-    width: 44,
-    height: 22,
-    borderRadius: 12,
+    position: "absolute",
+    bottom: 16,
+    right: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 100,
     backgroundColor: colours.accent_1,
     borderWidth: 2,
     borderColor: colours.border_1,
+    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-  }
+    alignSelf: "flex-start",
+    gap: 6,
+  },
+  openMapButtonText: {
+    color: colours.secondary_bg,
+    fontWeight: "800",
+  },
 });
