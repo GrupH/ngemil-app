@@ -6,10 +6,14 @@ import SearchBar from "@/components/SearchBar";
 import SpotOfTheDayCard from "@/components/SpotOfTheDayCard";
 import { colours } from "@/constants/style";
 import { useRouter } from "expo-router";
+import { useLocation } from "@/hooks/useLocation";
+import Mapbox from "@rnmapbox/maps";
 import { Expand } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
 const NEARBY_SPOTS = [
   {
@@ -316,6 +320,7 @@ const App = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceData | null>(null);
   const router = useRouter();
+  const { name: locationName, coords } = useLocation();
 
   const handleOpenPlace = (place: PlaceData) => {
     setSelectedPlace(place);
@@ -330,12 +335,34 @@ const App = () => {
       >
         {/* Header Section */}
         <View style={styles.headerRow}>
-          <LocationPill title="Plaza Indonesia" onPress={() => {}} />
+          <LocationPill
+            title={locationName}
+            onPress={() => router.push("/map")}
+          />
           <ProfileButton onPress={() => router.push("/profile")} />
         </View>
 
-        {/* Map Card Placeholder */}
+        {/* Map Card Preview */}
         <View style={styles.mapCard}>
+          <Mapbox.MapView
+            style={StyleSheet.absoluteFill}
+            zoomEnabled={false}
+            scrollEnabled={false}
+            pitchEnabled={false}
+            rotateEnabled={false}
+            logoEnabled={false}
+            attributionEnabled={false}
+          >
+            <Mapbox.Camera
+              zoomLevel={14}
+              centerCoordinate={
+                coords
+                  ? [coords.longitude, coords.latitude]
+                  : [106.8272, -6.1751]
+              }
+            />
+            {coords && <Mapbox.UserLocation visible={true} />}
+          </Mapbox.MapView>
           <Pressable
             onPress={() => router.push("/map")}
             style={styles.openMapButton}
@@ -487,6 +514,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     marginTop: 24,
     padding: 16,
+    overflow: "hidden",
+    position: "relative",
   },
   searchBarContainer: {
     marginTop: 24,
