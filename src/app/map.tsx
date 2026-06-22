@@ -3,7 +3,7 @@ import Mapbox from "@rnmapbox/maps";
 import { router } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
-Mapbox.setAccessToken(process.env.MAPBOX_KEY!);
+Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
 export default function MapPage() {
   return (
