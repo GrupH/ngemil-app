@@ -4,10 +4,11 @@ import PlaceDetailModal, { PlaceData } from "@/components/PlaceDetailModal";
 import ProfileButton from "@/components/ProfileButton";
 import SearchBar from "@/components/SearchBar";
 import SpotOfTheDayCard from "@/components/SpotOfTheDayCard";
+import { mapStyle } from "@/constants/mapStyle";
 import { colours } from "@/constants/style";
-import { useRouter } from "expo-router";
 import { useLocation } from "@/hooks/useLocation";
 import Mapbox from "@rnmapbox/maps";
+import { useRouter } from "expo-router";
 import { Expand } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -346,12 +347,14 @@ const App = () => {
         <View style={styles.mapCard}>
           <Mapbox.MapView
             style={StyleSheet.absoluteFill}
+            styleURL={JSON.stringify(mapStyle)}
             zoomEnabled={false}
             scrollEnabled={false}
             pitchEnabled={false}
             rotateEnabled={false}
             logoEnabled={false}
             attributionEnabled={false}
+            scaleBarEnabled={false}
           >
             <Mapbox.Camera
               zoomLevel={14}

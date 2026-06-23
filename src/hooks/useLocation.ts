@@ -33,32 +33,53 @@ export function useLocation() {
           return;
         }
 
-        const userLoc = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        });
-
-        const coords = {
-          latitude: userLoc.coords.latitude,
-          longitude: userLoc.coords.longitude,
-        };
-
-        // Try to reverse geocode
-        let name = "Lokasi Aktif";
+        let userLoc = null;
         try {
-          const geocode = await Location.reverseGeocodeAsync(coords);
-          if (geocode && geocode.length > 0) {
-            const addr = geocode[0];
-            // Format nice title (e.g. "Sudirman", "Plaza Indonesia", etc.)
-            name =
-              addr.street ||
-              addr.name ||
-              addr.district ||
-              addr.city ||
-              addr.subregion ||
-              "Lokasi Aktif";
-          }
+          userLoc = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
         } catch (e) {
-          console.warn("Failed to reverse geocode location:", e);
+          console.warn(
+            "Failed to get current position, trying last known position:",
+            e,
+          );
+          try {
+            userLoc = await Location.getLastKnownPositionAsync();
+          } catch (e2) {
+            console.warn("Failed to get last known position:", e2);
+          }
+        }
+
+        let coords;
+        let name = "Jakarta"; // General fallback location
+
+        if (userLoc) {
+          coords = {
+            latitude: userLoc.coords.latitude,
+            longitude: userLoc.coords.longitude,
+          };
+
+          // Try to reverse geocode
+          try {
+            const geocode = await Location.reverseGeocodeAsync(coords);
+            if (geocode && geocode.length > 0) {
+              const addr = geocode[0];
+              name =
+                addr.street ||
+                addr.name ||
+                addr.district ||
+                addr.city ||
+                addr.subregion ||
+                "Lokasi Aktif";
+            }
+          } catch (e) {
+            console.warn("Failed to reverse geocode location:", e);
+            name = "Lokasi Aktif";
+          }
+        } else {
+          // If location is completely unavailable, fall back to Jakarta name but keep coords null
+          coords = null;
+          name = "Jakarta";
         }
 
         setState({
@@ -68,9 +89,10 @@ export function useLocation() {
           error: null,
         });
       } catch (err: any) {
+        // Safe catch-all fallback
         setState({
           coords: null,
-          name: "Gagal memuat lokasi",
+          name: "Jakarta",
           loading: false,
           error: err.message || "Failed to get location",
         });

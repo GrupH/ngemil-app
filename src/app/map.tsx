@@ -1,8 +1,9 @@
 import BackButton from "@/components/BackButton";
+import { mapStyle } from "@/constants/mapStyle";
+import { useLocation } from "@/hooks/useLocation";
 import Mapbox from "@rnmapbox/maps";
 import { router } from "expo-router";
 import { StyleSheet, View } from "react-native";
-import { useLocation } from "@/hooks/useLocation";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
@@ -24,7 +25,11 @@ export default function MapPage() {
       </View>
 
       <View style={styles.container}>
-        <Mapbox.MapView style={styles.map}>
+        <Mapbox.MapView
+          style={styles.map}
+          styleURL={JSON.stringify(mapStyle)}
+          scaleBarEnabled={false}
+        >
           <Mapbox.Camera
             zoomLevel={15}
             centerCoordinate={
