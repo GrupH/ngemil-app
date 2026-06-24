@@ -9,3 +9,12 @@ export const colours = {
   text_primary: "#5A5869",
   text_secondary: "#8B889E",
 };
+
+export const mapColours = {
+  background: "#F1F3F5",
+  landuse: "#cedbce",
+  water: "#cbd6ee",
+  building: "#c7cceb",
+  road_minor: "#FFFFFF",
+  road_major: "#D1D5DB",
+};

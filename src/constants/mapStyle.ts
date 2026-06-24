@@ -1,4 +1,4 @@
-import { colours } from "./style";
+import { colours, mapColours } from "./style";
 
 export const mapStyle = {
   version: 8,
@@ -20,7 +20,7 @@ export const mapStyle = {
       id: "background",
       type: "background",
       paint: {
-        "background-color": colours.primary_bg,
+        "background-color": mapColours.background,
       },
     },
     {
@@ -29,7 +29,7 @@ export const mapStyle = {
       source: "composite",
       "source-layer": "landuse",
       paint: {
-        "fill-color": colours.accent_2, // soft light pastel purple #D7C7F7
+        "fill-color": mapColours.landuse, // soft light pastel purple #D7C7F7
         "fill-opacity": 0.25,
       },
     },
@@ -39,7 +39,7 @@ export const mapStyle = {
       source: "composite",
       "source-layer": "water",
       paint: {
-        "fill-color": colours.border_1, // soft blue/lavender #EDF0FE
+        "fill-color": mapColours.water, // soft blue/lavender #EDF0FE
       },
     },
     {
@@ -48,7 +48,7 @@ export const mapStyle = {
       source: "composite",
       "source-layer": "building",
       paint: {
-        "fill-color": "#EAEAE2",
+        "fill-color": mapColours.building,
         "fill-opacity": 0.5,
       },
     },
@@ -58,7 +58,7 @@ export const mapStyle = {
       source: "composite",
       "source-layer": "road",
       paint: {
-        "line-color": colours.secondary_bg, // White
+        "line-color": mapColours.road_minor, // White
         "line-width": 1.5,
       },
     },
@@ -69,7 +69,7 @@ export const mapStyle = {
       "source-layer": "road",
       filter: ["in", "class", "primary", "secondary", "tertiary"],
       paint: {
-        "line-color": colours.secondary_bg, // White
+        "line-color": mapColours.road_major, // White
         "line-width": 3,
       },
     },

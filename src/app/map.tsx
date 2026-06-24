@@ -29,12 +29,12 @@ export default function MapPage() {
           style={styles.map}
           styleURL={JSON.stringify(mapStyle)}
           scaleBarEnabled={false}
+          logoEnabled={false}
+          attributionEnabled={false}
         >
           <Mapbox.Camera
             zoomLevel={15}
-            centerCoordinate={
-              coords ? [coords.longitude, coords.latitude] : [106.8272, -6.1751]
-            }
+            centerCoordinate={[106.8272, -6.1751]}
             animationMode="flyTo"
             animationDuration={2000}
           />
