@@ -4,6 +4,7 @@ import NearbySpotCard from "@/components/NearbySpotCard";
 import PlaceDetailModal, { PlaceData } from "@/components/PlaceDetailModal";
 import ProfileButton from "@/components/ProfileButton";
 import SearchBar from "@/components/SearchBar";
+import Skeleton from "@/components/Skeleton";
 import SpotOfTheDayCard from "@/components/SpotOfTheDayCard";
 import { colours } from "@/constants/style";
 import { getLocationById, getNearbyLocations } from "@/lib/locations";
@@ -400,6 +401,8 @@ const App = () => {
     if (!coords) return;
     loadNearbyLocations();
   }, [coords]);
+
+  if (loading) return <Skeleton />;
 
   return (
     <SafeAreaView style={styles.page}>
