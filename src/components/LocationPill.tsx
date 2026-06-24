@@ -16,21 +16,23 @@ export default function LocationPill({ onPress, title }: LocationPillProps) {
         <MapPin color="#C6B6FC" fill="#C6B6FC" size={18} />
         <View style={styles.iconHole} />
       </View>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.title} ellipsizeMode="tail" numberOfLines={1}>
+        {title}
+      </Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   pill: {
+    maxWidth: 180,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#726E83",
     borderRadius: 9999,
     paddingVertical: 10,
-    paddingHorizontal: 22,
+    paddingHorizontal: 20,
     alignSelf: "flex-start",
-    gap: 8,
   },
   pressedPill: {
     opacity: 0.8,
@@ -53,5 +55,6 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "700",
+    paddingHorizontal: 12,
   },
 });

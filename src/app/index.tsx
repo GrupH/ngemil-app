@@ -7,6 +7,7 @@ import SpotOfTheDayCard from "@/components/SpotOfTheDayCard";
 import { mapStyle } from "@/constants/mapStyle";
 import { colours } from "@/constants/style";
 import { getLocationById, getNearbyLocations } from "@/lib/locations";
+import { NearbyLocations } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
 import { useRouter } from "expo-router";
 import { Expand } from "lucide-react-native";
@@ -16,67 +17,66 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
-const SAMPLE_SPOT =
-  {
-    id: "1",
-    imageUrl:
-      "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80",
-    title: "EXAMPLE RESTAURANT",
-    rating: 4.5,
-    distance: "0.7 km",
-    tags: ["Japanese", "Halal", "Cafe"],
-    description:
-      "Restoran Jepang dengan aneka menu sushi, ramen, dan katsu lezat di suasana cozy.",
-    photos: [
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80",
-      "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=600&q=80",
-      "https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?auto=format&fit=crop&w=600&q=80",
-      "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=600&q=80",
-      "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80",
-      "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80",
-    ],
-    reviews: [
-      {
-        id: "r1",
-        username: "user_2197639",
-        rating: 1,
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=alien",
-        comment:
-          "Overhyped, not worth the wait, and I wouldn't eat here again. The oat milk soup, ramen, and tuna were not a good combination at all. Each component felt very distinct and disconnected from the others, making the dish feel awkward and unbalanced.",
-      },
-      {
-        id: "r2",
-        username: "user_2830974",
-        rating: 5,
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=foodie",
-        comment:
-          "ordered chicken katsu curry, midori salmon roll, matcha ice cream. katsu curry was good. i like how the veggies and onion were still crunchy and not mushy. midori salmon roll, something was off, perhaps too much rice, i couldn't focus on enjoying the taste of salmon and tuna.",
-      },
-    ],
-    menuItems: [
-      {
-        id: "m1_1",
-        name: "Midori Salmon Roll",
-        price: "Rp 45.000",
-        imageUrl:
-          "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=300&q=80",
-      },
-      {
-        id: "m1_2",
-        name: "Chicken Katsu Curry",
-        price: "Rp 55.000",
-        imageUrl:
-          "https://images.unsplash.com/photo-1626804475315-9644b37a2fe4?auto=format&fit=crop&w=300&q=80",
-      },
-      {
-        id: "m1_3",
-        name: "Matcha Ice Cream",
-        price: "Rp 20.000",
-        imageUrl:
-          "https://images.unsplash.com/photo-1506084868230-bb9d95c24759?auto=format&fit=crop&w=300&q=80",
-      },
-    ],
-  }
+const SAMPLE_SPOT = {
+  id: "1",
+  imageUrl:
+    "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80",
+  title: "EXAMPLE RESTAURANT",
+  rating: 4.5,
+  distance: "0.7 km",
+  tags: ["Japanese", "Halal", "Cafe"],
+  description:
+    "Restoran Jepang dengan aneka menu sushi, ramen, dan katsu lezat di suasana cozy.",
+  photos: [
+    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80",
+  ],
+  reviews: [
+    {
+      id: "r1",
+      username: "user_2197639",
+      rating: 1,
+      avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=alien",
+      comment:
+        "Overhyped, not worth the wait, and I wouldn't eat here again. The oat milk soup, ramen, and tuna were not a good combination at all. Each component felt very distinct and disconnected from the others, making the dish feel awkward and unbalanced.",
+    },
+    {
+      id: "r2",
+      username: "user_2830974",
+      rating: 5,
+      avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=foodie",
+      comment:
+        "ordered chicken katsu curry, midori salmon roll, matcha ice cream. katsu curry was good. i like how the veggies and onion were still crunchy and not mushy. midori salmon roll, something was off, perhaps too much rice, i couldn't focus on enjoying the taste of salmon and tuna.",
+    },
+  ],
+  menuItems: [
+    {
+      id: "m1_1",
+      name: "Midori Salmon Roll",
+      price: "Rp 45.000",
+      imageUrl:
+        "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=300&q=80",
+    },
+    {
+      id: "m1_2",
+      name: "Chicken Katsu Curry",
+      price: "Rp 55.000",
+      imageUrl:
+        "https://images.unsplash.com/photo-1626804475315-9644b37a2fe4?auto=format&fit=crop&w=300&q=80",
+    },
+    {
+      id: "m1_3",
+      name: "Matcha Ice Cream",
+      price: "Rp 20.000",
+      imageUrl:
+        "https://images.unsplash.com/photo-1506084868230-bb9d95c24759?auto=format&fit=crop&w=300&q=80",
+    },
+  ],
+};
 //   {
 //     id: "2",
 //     imageUrl:
@@ -324,7 +324,7 @@ const App = () => {
   const [nearbyLocations, setNearbyLocations] = useState<PlaceData[]>([]);
   const router = useRouter();
   // const { name: locationName, coords } = useLocation();
-  
+
   const coords = { latitude: -6.1751, longitude: 106.8272 };
   const locationName = "Jonkler Street";
 
@@ -358,16 +358,19 @@ const App = () => {
     const { data, error } = await getNearbyLocations(
       coords!.latitude,
       coords!.longitude,
-      50000
+      50000,
     );
 
     // TODO: types
-    if (!error) setNearbyLocations(data.map((d: any) => parseLocationData(d)) ?? []);
+    if (!error)
+      setNearbyLocations(
+        data.map((d: NearbyLocations) => parseLocationData(d)) ?? [],
+      );
     setLoading(false);
   }
 
   //TODO: types
-  function parseLocationData(location: any): PlaceData {
+  function parseLocationData(location: NearbyLocations): PlaceData {
     const distanceKm = location.distance_m
       ? `${(location.distance_m / 1000).toFixed(1)} km`
       : "err";
@@ -458,15 +461,17 @@ const App = () => {
         {/* Spot of the Day Section */}
         <View style={styles.spotSection}>
           <Text style={styles.sectionTitle}>SPOT OF THE DAY</Text>
-          {spotOfTheDay && <SpotOfTheDayCard
-            imageUrl={spotOfTheDay.imageUrl}
-            title={spotOfTheDay.title}
-            rating={spotOfTheDay.rating}
-            distance={spotOfTheDay.distance}
-            tags={spotOfTheDay.tags}
-            description={spotOfTheDay.description}
-            onPress={() => handleOpenPlace(spotOfTheDay)}
-          />}
+          {spotOfTheDay && (
+            <SpotOfTheDayCard
+              imageUrl={spotOfTheDay.imageUrl}
+              title={spotOfTheDay.title}
+              rating={spotOfTheDay.rating}
+              distance={spotOfTheDay.distance}
+              tags={spotOfTheDay.tags}
+              description={spotOfTheDay.description}
+              onPress={() => handleOpenPlace(spotOfTheDay)}
+            />
+          )}
         </View>
 
         {/* Nearby Spots Section */}
