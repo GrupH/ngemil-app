@@ -1,18 +1,17 @@
 import LocationPill from "@/components/LocationPill";
+import MapPreview from "@/components/MapPreview";
 import NearbySpotCard from "@/components/NearbySpotCard";
 import PlaceDetailModal, { PlaceData } from "@/components/PlaceDetailModal";
 import ProfileButton from "@/components/ProfileButton";
 import SearchBar from "@/components/SearchBar";
 import SpotOfTheDayCard from "@/components/SpotOfTheDayCard";
-import { mapStyle } from "@/constants/mapStyle";
 import { colours } from "@/constants/style";
 import { getLocationById, getNearbyLocations } from "@/lib/locations";
 import { NearbyLocations } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
 import { useRouter } from "expo-router";
-import { Expand } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
@@ -418,36 +417,7 @@ const App = () => {
         </View>
 
         {/* Map Card Preview */}
-        <View style={styles.mapCard}>
-          <Mapbox.MapView
-            style={StyleSheet.absoluteFill}
-            styleURL={JSON.stringify(mapStyle)}
-            zoomEnabled={false}
-            scrollEnabled={false}
-            pitchEnabled={false}
-            rotateEnabled={false}
-            logoEnabled={false}
-            attributionEnabled={false}
-            scaleBarEnabled={false}
-          >
-            <Mapbox.Camera
-              zoomLevel={14}
-              centerCoordinate={
-                coords
-                  ? [coords.longitude, coords.latitude]
-                  : [106.8272, -6.1751]
-              }
-            />
-            {coords && <Mapbox.UserLocation visible={true} />}
-          </Mapbox.MapView>
-          <Pressable
-            onPress={() => router.push("/map")}
-            style={styles.openMapButton}
-          >
-            <Expand size={16} color={colours.secondary_bg} />
-            <Text style={styles.openMapButtonText}>Expand</Text>
-          </Pressable>
-        </View>
+        <MapPreview coords={coords} />
 
         {/* Search Bar Section */}
         <View style={styles.searchBarContainer}>
