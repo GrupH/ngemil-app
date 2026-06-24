@@ -45,7 +45,8 @@
           }
         }
       ],
-      "@rnmapbox/maps"
+      "@rnmapbox/maps",
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true,

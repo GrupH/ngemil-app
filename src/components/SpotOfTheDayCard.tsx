@@ -1,17 +1,8 @@
 import Tag from "@/components/Tag";
 import { colours } from "@/constants/style";
+import { SpotProps } from "@/types/types";
 import { MapPin, Star } from "lucide-react-native";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-
-type SpotProps = {
-  imageUrl: string;
-  title: string;
-  rating: number;
-  distance: string;
-  tags: string[];
-  description: string;
-  onPress?: () => void;
-};
 
 export default function SpotOfTheDayCard({
   imageUrl,
@@ -52,8 +43,8 @@ export default function SpotOfTheDayCard({
 
         {/* Tags Row */}
         <View style={styles.tagRow}>
-          {tags.map((tag) => (
-            <Tag key={tag} text={tag} />
+          {tags.map((tag, index) => (
+            <Tag key={index} text={tag.name} />
           ))}
         </View>
 

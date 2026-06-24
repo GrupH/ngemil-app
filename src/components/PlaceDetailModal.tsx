@@ -19,7 +19,8 @@ export type PlaceData = {
   title: string;
   rating: number;
   distance: string;
-  tags: string[];
+  address: string;
+  tags: {name: string, count: number}[];
   description: string;
   photos?: string[];
   reviews?: Review[];

@@ -4,7 +4,7 @@ import { Plus } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 
 type TagsSectionProps = {
-  tags: string[];
+  tags: {name: string, count: number}[];
 };
 
 export default function TagsSection({ tags }: TagsSectionProps) {
@@ -13,8 +13,7 @@ export default function TagsSection({ tags }: TagsSectionProps) {
       <Text style={styles.sectionHeading}>TAGS</Text>
       <View style={styles.tagRow}>
         {tags.map((tag, index) => {
-          const count = 10 + index * 5 + (tag.length % 7);
-          return <Tag key={tag} text={tag} count={count} />;
+          return <Tag key={index} text={tag.name} count={tag.count} />;
         })}
         <View style={styles.addTagButton}>
           <Plus color="#8B889E" size={12} />

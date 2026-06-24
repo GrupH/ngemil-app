@@ -1,17 +1,8 @@
 import Tag from "@/components/Tag";
 import { colours } from "@/constants/style";
+import { SpotProps } from "@/types/types";
 import { MapPin, Star } from "lucide-react-native";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-
-type NearbySpotProps = {
-  imageUrl: string;
-  title: string;
-  rating: number;
-  distance: string;
-  tags: string[];
-  description: string;
-  onPress?: () => void;
-};
 
 export default function NearbySpotCard({
   imageUrl,
@@ -21,7 +12,7 @@ export default function NearbySpotCard({
   tags,
   description,
   onPress,
-}: NearbySpotProps) {
+}: SpotProps) {
   return (
     <Pressable
       onPress={onPress}
@@ -54,8 +45,8 @@ export default function NearbySpotCard({
 
         {/* Tags Row - Slice to 2 tags to prevent wrap height misalignment */}
         <View style={styles.tagRow}>
-          {tags.slice(0, 2).map((tag) => (
-            <Tag key={tag} text={tag} small />
+          {tags.slice(0, 2).map((tag, index) => (
+            <Tag key={index} text={tag.name} small />
           ))}
         </View>
 
