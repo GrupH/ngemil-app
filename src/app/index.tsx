@@ -7,6 +7,7 @@ import SearchBar from "@/components/SearchBar";
 import Skeleton from "@/components/Skeleton";
 import SpotOfTheDayCard from "@/components/SpotOfTheDayCard";
 import { colours } from "@/constants/style";
+import { useLocation } from "@/hooks/useLocation";
 import { getLocationById, getNearbyLocations } from "@/lib/locations";
 import { NearbyLocations, PlaceData } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
@@ -322,10 +323,10 @@ const App = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceData | null>(null);
   const router = useRouter();
-  // const { name: locationName, coords } = useLocation();
-
-  const coords = { latitude: -6.1751, longitude: 106.8272 };
-  const locationName = "Jonkler Street";
+  const { name: locationName, coords } = useLocation();
+  // Dummy Location
+  // const coords = { latitude: -6.1751, longitude: 106.8272 };
+  // const locationName = "Jonkler Street";
 
   const handleOpenPlace = async (place: PlaceData) => {
     setSelectedPlace(place);

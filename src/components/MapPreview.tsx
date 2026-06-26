@@ -10,7 +10,7 @@ export default function MapPreview({
   coords: {
     latitude: number;
     longitude: number;
-  };
+  } | null;
 }) {
   const router = useRouter();
 
@@ -29,6 +29,9 @@ export default function MapPreview({
       >
         <Mapbox.Camera
           zoomLevel={14}
+          followZoomLevel={14}
+          followUserLocation={true}
+          followUserMode={Mapbox.UserTrackingMode.Follow}
           centerCoordinate={
             coords ? [coords.longitude, coords.latitude] : [106.8272, -6.1751]
           }

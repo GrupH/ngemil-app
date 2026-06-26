@@ -39,8 +39,10 @@ export default function MapPage() {
           attributionEnabled={false}
         >
           <Mapbox.Camera
-            zoomLevel={15}
-            centerCoordinate={[106.8272, -6.1751]}
+            zoomLevel={16}
+            centerCoordinate={
+              coords ? [coords.longitude, coords.latitude] : [106.8272, -6.1751]
+            }
             animationMode="flyTo"
             animationDuration={2000}
           />
