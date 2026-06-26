@@ -1,8 +1,8 @@
 import PhotoCarousel from "@/components/PhotoCarousel";
-import ReviewsSection, { Review } from "@/components/ReviewsSection";
 import TagsSection from "@/components/TagsSection";
-import TopMenusSection, { MenuItem } from "@/components/TopMenusSection";
 import { colours } from "@/constants/style";
+import type { PlaceData } from "@/types/types";
+import { useRouter } from "expo-router";
 import { MapPin, Star } from "lucide-react-native";
 import {
   Modal,
@@ -12,20 +12,8 @@ import {
   Text,
   View,
 } from "react-native";
-
-export type PlaceData = {
-  id: string;
-  imageUrl: string;
-  title: string;
-  rating: number;
-  distance: string;
-  address: string;
-  tags: {name: string, count: number}[];
-  description: string;
-  photos?: string[];
-  reviews?: Review[];
-  menuItems?: MenuItem[];
-};
+import ReviewsSection from "./ReviewsSection";
+import TopMenusSection from "./TopMenusSection";
 
 type PlaceDetailModalProps = {
   modalVisible: boolean;
@@ -44,6 +32,8 @@ export default function PlaceDetailModal({
     place.photos && place.photos.length > 0 ? place.photos : [place.imageUrl];
 
   const reviews = place.reviews || [];
+
+  const router = useRouter();
 
   return (
     <Modal
@@ -106,6 +96,19 @@ export default function PlaceDetailModal({
 
             {/* REVIEWS Section */}
             <ReviewsSection reviews={reviews} />
+
+            <Pressable
+              style={styles.detailButton}
+              onPress={() => {
+                setModalVisible(false);
+                router.push({
+                  pathname: "/place-detail/[id]",
+                  params: { id: String(place.id) },
+                });
+              }}
+            >
+              <Text style={styles.detailButtonText}>View Full Details</Text>
+            </Pressable>
           </ScrollView>
         </Pressable>
       </Pressable>
@@ -183,5 +186,17 @@ const styles = StyleSheet.create({
     color: "#605E70",
     lineHeight: 22,
     marginBottom: 24,
+  },
+  detailButton: {
+    width: "100%",
+    backgroundColor: colours.accent_1,
+    borderRadius: 12,
+    paddingVertical: 12,
+  },
+  detailButtonText: {
+    color: colours.secondary_bg,
+    width: "100%",
+    fontWeight: "700",
+    textAlign: "center",
   },
 });

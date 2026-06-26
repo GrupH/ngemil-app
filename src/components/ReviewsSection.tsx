@@ -1,14 +1,7 @@
 import { colours } from "@/constants/style";
+import type { Review } from "@/types/types";
 import { Star } from "lucide-react-native";
 import { Image, StyleSheet, Text, View } from "react-native";
-
-export type Review = {
-  id: string;
-  username: string;
-  rating: number;
-  avatar: string;
-  comment: string;
-};
 
 type ReviewsSectionProps = {
   reviews: Review[];

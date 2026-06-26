@@ -1,12 +1,6 @@
 import { colours } from "@/constants/style";
+import type { MenuItem } from "@/types/types";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
-
-export type MenuItem = {
-  id: string;
-  name: string;
-  price: string;
-  imageUrl: string;
-};
 
 type TopMenusSectionProps = {
   menuItems: MenuItem[];

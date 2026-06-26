@@ -1,14 +1,14 @@
 import LocationPill from "@/components/LocationPill";
 import MapPreview from "@/components/MapPreview";
 import NearbySpotCard from "@/components/NearbySpotCard";
-import PlaceDetailModal, { PlaceData } from "@/components/PlaceDetailModal";
+import PlaceDetailModal from "@/components/PlaceDetailModal";
 import ProfileButton from "@/components/ProfileButton";
 import SearchBar from "@/components/SearchBar";
 import Skeleton from "@/components/Skeleton";
 import SpotOfTheDayCard from "@/components/SpotOfTheDayCard";
 import { colours } from "@/constants/style";
 import { getLocationById, getNearbyLocations } from "@/lib/locations";
-import { NearbyLocations } from "@/types/types";
+import { NearbyLocations, PlaceData } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -395,6 +395,7 @@ const App = () => {
 
   const spotOfTheDay = nearbyLocations[0] ?? SAMPLE_SPOT; // TODO
 
+  // TODO: REPLACE WITH REACT QUERY
   useEffect(() => {
     if (!coords) return;
     loadNearbyLocations();

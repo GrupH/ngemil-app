@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Image,
   ScrollView,
@@ -8,7 +7,7 @@ import {
 } from "react-native";
 
 type PhotoCarouselProps = {
-  photos: string[];
+  photos: (string | undefined)[];
 };
 
 export default function PhotoCarousel({ photos }: PhotoCarouselProps) {
