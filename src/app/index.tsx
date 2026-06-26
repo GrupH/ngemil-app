@@ -10,8 +10,9 @@ import { colours } from "@/constants/style";
 import { getLocationById, getNearbyLocations } from "@/lib/locations";
 import { NearbyLocations, PlaceData } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -320,8 +321,6 @@ const App = () => {
   const [search, setSearch] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [nearbyLocations, setNearbyLocations] = useState<PlaceData[]>([]);
   const router = useRouter();
   // const { name: locationName, coords } = useLocation();
 
@@ -331,7 +330,7 @@ const App = () => {
   const handleOpenPlace = async (place: PlaceData) => {
     setSelectedPlace(place);
     setModalVisible(true);
-    const { data, error } = await getLocationById(place.id);
+    const { data, error } = await getLocationById(place.id); // TODO : Make a nerfed version of "getLocationById" to be less detailed with the fetch for modal
 
     if (!error && data) {
       const images = data.location_images ?? [];
@@ -351,22 +350,6 @@ const App = () => {
       });
     }
   };
-
-  async function loadNearbyLocations() {
-    setLoading(true);
-    // TODO: decide max distance
-    const { data, error } = await getNearbyLocations(
-      coords!.latitude,
-      coords!.longitude,
-      50000,
-    );
-
-    if (!error)
-      setNearbyLocations(
-        data.map((d: NearbyLocations) => parseLocationData(d)) ?? [],
-      );
-    setLoading(false);
-  }
 
   function parseLocationData(location: NearbyLocations): PlaceData {
     const distanceKm = location.distance_m
@@ -393,15 +376,25 @@ const App = () => {
     };
   }
 
+  const { data: nearbyLocations = [], isLoading } = useQuery({
+    queryKey: ["nearbyLocations", coords?.latitude, coords?.longitude],
+    enabled: !!coords,
+    queryFn: async () => {
+      const { data, error } = await getNearbyLocations(
+        coords!.latitude,
+        coords!.longitude,
+        50000, // TODO: decide max distance
+      );
+
+      if (error) throw error;
+
+      return (data ?? []).map(parseLocationData);
+    },
+  });
+
   const spotOfTheDay = nearbyLocations[0] ?? SAMPLE_SPOT; // TODO
 
-  // TODO: REPLACE WITH REACT QUERY
-  useEffect(() => {
-    if (!coords) return;
-    loadNearbyLocations();
-  }, [coords]);
-
-  if (loading) return <Skeleton />;
+  if (isLoading) return <Skeleton />;
 
   return (
     <SafeAreaView style={styles.page}>
@@ -450,7 +443,7 @@ const App = () => {
         <View style={styles.nearbySection}>
           <Text style={styles.sectionTitle}>NEARBY</Text>
           <View style={styles.gridContainer}>
-            {nearbyLocations.map((spot) => (
+            {nearbyLocations.map((spot: PlaceData) => (
               <View key={spot.id} style={styles.gridColumn}>
                 <NearbySpotCard
                   imageUrl={spot.imageUrl}

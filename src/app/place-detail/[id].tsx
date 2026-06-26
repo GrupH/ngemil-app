@@ -6,23 +6,32 @@ import TopMenusSection from "@/components/TopMenusSection";
 import { colours } from "@/constants/style";
 import { getLocationById } from "@/lib/locations";
 import type { LocationByID, PlaceData } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MapPin, Star } from "lucide-react-native";
-import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function PlaceDetailPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [locationData, setLocationData] = useState<PlaceData>();
   const router = useRouter();
 
-  async function getLocationData() {
-    const { data, error } = await getLocationById(id);
+  const { data: locationData, isLoading } = useQuery({
+    queryKey: ["locationById", id],
+    queryFn: async () => {
+      const { data, error } = await getLocationById(id);
 
-    if (!error) {
-      setLocationData(parseLocationData(data));
-    }
-  }
+      if (error) throw error;
+
+      return parseLocationData(data);
+    },
+  });
+
+  const photos =
+    locationData?.photos && locationData?.photos.length > 0
+      ? locationData?.photos
+      : [locationData?.imageUrl];
+
+  const reviews = locationData?.reviews || [];
 
   function parseLocationData(location: LocationByID): PlaceData {
     return {
@@ -52,17 +61,6 @@ export default function PlaceDetailPage() {
       menuItems: [],
     };
   }
-
-  useEffect(() => {
-    getLocationData();
-  }, [id]);
-
-  const photos =
-    locationData?.photos && locationData?.photos.length > 0
-      ? locationData?.photos
-      : [locationData?.imageUrl];
-
-  const reviews = locationData?.reviews || [];
 
   return (
     <View>
