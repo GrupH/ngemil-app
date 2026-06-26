@@ -361,7 +361,6 @@ const App = () => {
       50000,
     );
 
-    // TODO: types
     if (!error)
       setNearbyLocations(
         data.map((d: NearbyLocations) => parseLocationData(d)) ?? [],
@@ -369,7 +368,6 @@ const App = () => {
     setLoading(false);
   }
 
-  //TODO: types
   function parseLocationData(location: NearbyLocations): PlaceData {
     const distanceKm = location.distance_m
       ? `${(location.distance_m / 1000).toFixed(1)} km`

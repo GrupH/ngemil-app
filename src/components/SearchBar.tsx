@@ -1,3 +1,4 @@
+import { colours } from "@/constants/style";
 import { Search } from "lucide-react-native";
 import { StyleSheet, TextInput, View } from "react-native";
 
@@ -33,23 +34,19 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colours.secondary_bg,
     width: "100%",
     borderRadius: 12,
-    borderColor: "#EDF0FE",
-    borderWidth: 2,
+    borderColor: colours.border_1,
+    borderWidth: 1,
     paddingHorizontal: 14,
     gap: 10,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
     elevation: 2,
   },
   input: {
     flex: 1,
     fontSize: 16,
-    color: "#333333",
+    color: colours.text_primary,
     paddingVertical: 12,
   },
 });
