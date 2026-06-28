@@ -1,6 +1,7 @@
 import BackButton from "@/components/BackButton";
 import PhotoCarousel from "@/components/PhotoCarousel";
 import ReviewsSection from "@/components/ReviewsSection";
+import PlaceDetailSkeleton from "@/components/Skeleton/PlaceDetailSkeleton";
 import TagsSection from "@/components/TagsSection";
 import TopMenusSection from "@/components/TopMenusSection";
 import { colours } from "@/constants/style";
@@ -61,6 +62,8 @@ export default function PlaceDetailPage() {
       menuItems: [],
     };
   }
+
+  if (isLoading) return <PlaceDetailSkeleton variant="page" />;
 
   return (
     <View>

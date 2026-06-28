@@ -4,7 +4,7 @@ import NearbySpotCard from "@/components/NearbySpotCard";
 import PlaceDetailModal from "@/components/PlaceDetailModal";
 import ProfileButton from "@/components/ProfileButton";
 import SearchBar from "@/components/SearchBar";
-import Skeleton from "@/components/Skeleton";
+import HomeSkeleton from "@/components/Skeleton/HomeSkeleton";
 import SpotOfTheDayCard from "@/components/SpotOfTheDayCard";
 import { colours } from "@/constants/style";
 import { useLocation } from "@/hooks/useLocation";
@@ -395,7 +395,7 @@ const App = () => {
 
   const spotOfTheDay = nearbyLocations[0] ?? SAMPLE_SPOT; // TODO
 
-  if (isLoading) return <Skeleton />;
+  if (isLoading) return <HomeSkeleton />;
 
   return (
     <SafeAreaView style={styles.page}>

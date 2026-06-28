@@ -1,52 +1,7 @@
 import { colours } from "@/constants/style";
-import { useEffect, useRef } from "react";
-import { Animated, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const SHIMMER_BASE = "#d8dae9";
-const SHIMMER_HIGHLIGHT = "#ececee";
-
-const Bone = ({
-  width,
-  height,
-  borderRadius = 8,
-  style,
-}: {
-  width: number | string;
-  height: number;
-  borderRadius?: number;
-  style?: object;
-}) => {
-  const shimmer = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmer, {
-          toValue: 1,
-          duration: 900,
-          useNativeDriver: false,
-        }),
-        Animated.timing(shimmer, {
-          toValue: 0,
-          duration: 900,
-          useNativeDriver: false,
-        }),
-      ]),
-    ).start();
-  }, []);
-
-  const backgroundColor = shimmer.interpolate({
-    inputRange: [0, 1],
-    outputRange: [SHIMMER_BASE, SHIMMER_HIGHLIGHT],
-  });
-
-  return (
-    <Animated.View
-      style={[{ width, height, borderRadius, backgroundColor }, style]}
-    />
-  );
-};
+import Bone, { SHIMMER_BASE } from "./Bone";
 
 const SectionLabelBone = () => (
   <Bone width={120} height={14} borderRadius={4} />
@@ -96,7 +51,7 @@ const NearbyCardSkeleton = () => (
   </View>
 );
 
-const Skeleton = () => {
+const HomeSkeleton = () => {
   return (
     <SafeAreaView style={skeletonStyles.page}>
       <ScrollView
@@ -148,7 +103,7 @@ const Skeleton = () => {
   );
 };
 
-export default Skeleton;
+export default HomeSkeleton;
 
 const skeletonStyles = StyleSheet.create({
   page: {
