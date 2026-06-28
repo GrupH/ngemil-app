@@ -341,7 +341,7 @@ const App = () => {
         username: r.profiles.username,
         rating: r.rating,
         comment: r.comment,
-        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=foodie",
+        avatar: r.profiles.avatar_url,
       }));
 
       setSelectedPlace({

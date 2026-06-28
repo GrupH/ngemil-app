@@ -49,10 +49,6 @@ export default function NearbySpotCard({
             <Tag key={index} text={tag.name} small />
           ))}
         </View>
-
-        <Text style={styles.description} numberOfLines={2}>
-          {description}
-        </Text>
       </View>
     </Pressable>
   );
@@ -126,7 +122,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 12,
-    gap: 6,
+    gap: 8,
   },
   title: {
     fontSize: 14,

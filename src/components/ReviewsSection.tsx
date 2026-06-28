@@ -1,24 +1,35 @@
 import { colours } from "@/constants/style";
 import type { Review } from "@/types/types";
-import { Star } from "lucide-react-native";
+import { Star, User } from "lucide-react-native";
 import { Image, StyleSheet, Text, View } from "react-native";
 
 type ReviewsSectionProps = {
   reviews: Review[];
+  isModal?: boolean;
 };
 
-export default function ReviewsSection({ reviews }: ReviewsSectionProps) {
+export default function ReviewsSection({
+  reviews,
+  isModal = false,
+}: ReviewsSectionProps) {
   if (!reviews || reviews.length === 0) return null;
 
   return (
     <View style={styles.sectionContainer}>
-      <Text style={styles.sectionHeading}>REVIEWS</Text>
+      <Text style={styles.sectionHeading}>{isModal && "TOP"} REVIEWS</Text>
       <View style={styles.reviewsList}>
         {reviews.map((review) => (
           <View key={review.id} style={styles.reviewCard}>
             <View style={styles.reviewHeader}>
               <View style={styles.avatarContainer}>
-                <Image source={{ uri: review.avatar }} style={styles.avatar} />
+                {review.avatar ? (
+                  <Image
+                    source={{ uri: review.avatar }}
+                    style={styles.avatar}
+                  />
+                ) : (
+                  <User color={colours.accent_1} />
+                )}
               </View>
               <View style={styles.reviewUserMeta}>
                 <Text style={styles.username}>{review.username}</Text>
@@ -75,6 +86,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: "#EDF0FE",
     overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
   },
   avatar: {
     width: "100%",

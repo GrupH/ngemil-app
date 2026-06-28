@@ -89,13 +89,13 @@ export default function PlaceDetailModal({
             contentContainerStyle={styles.scrollContent}
           >
             {/* TAGS Section */}
-            <TagsSection tags={place.tags} />
+            <TagsSection tags={place.tags} isModal />
 
             {/* TOP MENUS Section */}
             <TopMenusSection menuItems={place.menuItems || []} />
 
             {/* REVIEWS Section */}
-            <ReviewsSection reviews={reviews} />
+            <ReviewsSection reviews={reviews} isModal />
 
             <Pressable
               style={styles.detailButton}

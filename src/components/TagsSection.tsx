@@ -4,10 +4,14 @@ import { Plus } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 
 type TagsSectionProps = {
-  tags: {name: string, count: number}[];
+  tags: { name: string; count: number }[];
+  isModal?: boolean;
 };
 
-export default function TagsSection({ tags }: TagsSectionProps) {
+export default function TagsSection({
+  tags,
+  isModal = false,
+}: TagsSectionProps) {
   return (
     <View style={styles.sectionContainer}>
       <Text style={styles.sectionHeading}>TAGS</Text>
@@ -15,10 +19,12 @@ export default function TagsSection({ tags }: TagsSectionProps) {
         {tags.map((tag, index) => {
           return <Tag key={index} text={tag.name} count={tag.count} />;
         })}
-        <View style={styles.addTagButton}>
-          <Plus color="#8B889E" size={12} />
-          <Text style={styles.addTagText}>Add</Text>
-        </View>
+        {!isModal && (
+          <View style={styles.addTagButton}>
+            <Plus color="#8B889E" size={12} />
+            <Text style={styles.addTagText}>Add</Text>
+          </View>
+        )}
       </View>
     </View>
   );
