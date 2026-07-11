@@ -418,7 +418,7 @@ const App = () => {
         {/* Search Bar Section */}
         <View style={styles.searchBarContainer}>
           <SearchBar
-            placeholder="Cari cemilan atau tempat makan..."
+            placeholder="Search for snacks or hangout spots..."
             value={search}
             onChangeText={setSearch}
           />

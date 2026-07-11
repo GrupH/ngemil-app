@@ -14,7 +14,7 @@ export interface LocationState {
 export function useLocation() {
   const [state, setState] = useState<LocationState>({
     coords: null,
-    name: "Mencari lokasi...",
+    name: "Searching...",
     loading: true,
     error: null,
   });
@@ -28,7 +28,7 @@ export function useLocation() {
         if (status !== "granted") {
           setState({
             coords: null,
-            name: "Akses Lokasi Ditolak",
+            name: "Permission to access location was denied",
             loading: false,
             error: "Permission to access location was denied",
           });
@@ -48,7 +48,7 @@ export function useLocation() {
               longitude: userLoc.coords.longitude,
             };
 
-            let name = "Lokasi Aktif";
+            let name = "Active Location";
             // Try to reverse geocode the updated coordinates
             try {
               const geocode = await Location.reverseGeocodeAsync(currentCoords);
@@ -60,7 +60,7 @@ export function useLocation() {
                   addr.district ||
                   addr.city ||
                   addr.subregion ||
-                  "Lokasi Aktif";
+                  "Active Location";
               }
             } catch (e) {
               console.warn("Failed to reverse geocode location:", e);
