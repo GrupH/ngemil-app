@@ -89,7 +89,7 @@ export default function PlaceDetailModal({
             contentContainerStyle={styles.scrollContent}
           >
             {/* TAGS Section */}
-            <TagsSection tags={place.tags} isModal />
+            <TagsSection tags={place.tags} isAdd />
 
             {/* TOP MENUS Section */}
             <TopMenusSection menuItems={place.menuItems || []} />

@@ -3,6 +3,7 @@ import PhotoCarousel from "@/components/PhotoCarousel";
 import ReviewsSection from "@/components/ReviewsSection";
 import PlaceDetailSkeleton from "@/components/Skeleton/PlaceDetailSkeleton";
 import TagsSection from "@/components/TagsSection";
+import TagVotingModal from "@/components/TagVotingModal";
 import TopMenusSection from "@/components/TopMenusSection";
 import { colours } from "@/constants/style";
 import { getLocationById } from "@/lib/locations";
@@ -10,11 +11,14 @@ import type { LocationByID, PlaceData } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MapPin, Star } from "lucide-react-native";
+import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function PlaceDetailPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+
+  const [tagModalOpen, setTagModal] = useState<boolean>(false)
 
   const { data: locationData, isLoading } = useQuery({
     queryKey: ["locationById", id],
@@ -61,6 +65,10 @@ export default function PlaceDetailPage() {
       }),
       menuItems: [],
     };
+  }
+
+  function setModalVisible(visible: boolean){
+    setTagModal(visible)
   }
 
   if (isLoading) return <PlaceDetailSkeleton variant="page" />;
@@ -113,7 +121,7 @@ export default function PlaceDetailPage() {
           </Text>
 
           {/* TAGS Section */}
-          <TagsSection tags={locationData?.tags || []} />
+          <TagsSection tags={locationData?.tags || []} openModal={() => setModalVisible(true)}/>
 
           {/* TOP MENUS Section */}
           <TopMenusSection menuItems={locationData?.menuItems || []} />
@@ -122,6 +130,7 @@ export default function PlaceDetailPage() {
           <ReviewsSection reviews={reviews} />
         </ScrollView>
       </Pressable>
+      <TagVotingModal modalVisible={tagModalOpen} setModalVisible={setModalVisible}/>
     </View>
   );
 }

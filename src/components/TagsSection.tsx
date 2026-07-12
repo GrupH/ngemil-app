@@ -1,16 +1,18 @@
 import Tag from "@/components/Tag";
 import { colours } from "@/constants/style";
 import { Plus } from "lucide-react-native";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type TagsSectionProps = {
   tags: { name: string; count: number }[];
-  isModal?: boolean;
+  isAdd?: boolean;
+  openModal?: () => void;
 };
 
 export default function TagsSection({
   tags,
-  isModal = false,
+  isAdd = false,
+  openModal
 }: TagsSectionProps) {
   return (
     <View style={styles.sectionContainer}>
@@ -19,11 +21,11 @@ export default function TagsSection({
         {tags.map((tag, index) => {
           return <Tag key={index} text={tag.name} count={tag.count} />;
         })}
-        {!isModal && (
-          <View style={styles.addTagButton}>
+        {!isAdd && (
+          <Pressable style={styles.addTagButton} onPress={openModal}>
             <Plus color="#8B889E" size={12} />
             <Text style={styles.addTagText}>Add</Text>
-          </View>
+          </Pressable>
         )}
       </View>
     </View>
@@ -55,13 +57,13 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#EDF0FE",
+    borderColor: colours.heading,
     borderStyle: "dashed",
     backgroundColor: "transparent",
   },
   addTagText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#8B889E",
+    color: colours.heading,
   },
 });
