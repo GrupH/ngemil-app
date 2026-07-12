@@ -18,7 +18,10 @@ export default function PlaceDetailPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  const [tagModalOpen, setTagModal] = useState<boolean>(false)
+  const [tagModalOpen, setTagModal] = useState<boolean>(false);
+  // TODO: wire this up to a WriteReviewModal component (same pattern as
+  // TagVotingModal) once the write-review flow is ready to build.
+  const [reviewModalOpen, setReviewModal] = useState<boolean>(false);
 
   const { data: locationData, isLoading } = useQuery({
     queryKey: ["locationById", id],
@@ -67,8 +70,12 @@ export default function PlaceDetailPage() {
     };
   }
 
-  function setModalVisible(visible: boolean){
-    setTagModal(visible)
+  function setModalVisible(visible: boolean) {
+    setTagModal(visible);
+  }
+
+  function setReviewModalVisible(visible: boolean) {
+    setReviewModal(visible);
   }
 
   if (isLoading) return <PlaceDetailSkeleton variant="page" />;
@@ -121,16 +128,27 @@ export default function PlaceDetailPage() {
           </Text>
 
           {/* TAGS Section */}
-          <TagsSection tags={locationData?.tags || []} openModal={() => setModalVisible(true)}/>
+          <TagsSection
+            tags={locationData?.tags || []}
+            openModal={() => setModalVisible(true)}
+          />
 
           {/* TOP MENUS Section */}
           <TopMenusSection menuItems={locationData?.menuItems || []} />
 
           {/* REVIEWS Section */}
-          <ReviewsSection reviews={reviews} />
+          <ReviewsSection
+            reviews={reviews}
+            onAddReview={() => setReviewModalVisible(true)}
+          />
         </ScrollView>
       </Pressable>
-      <TagVotingModal modalVisible={tagModalOpen} setModalVisible={setModalVisible}/>
+      <TagVotingModal
+        modalVisible={tagModalOpen}
+        setModalVisible={setModalVisible}
+      />
+      {/* WriteReviewModal will hook in here, mirroring TagVotingModal's
+          slide-up sheet pattern, once reviewModalOpen is wired to it. */}
     </View>
   );
 }
