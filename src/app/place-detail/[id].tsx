@@ -1,3 +1,4 @@
+import AddReviewModal from "@/components/AddReviewModal";
 import BackButton from "@/components/BackButton";
 import PhotoCarousel from "@/components/PhotoCarousel";
 import ReviewsSection from "@/components/ReviewsSection";
@@ -19,8 +20,6 @@ export default function PlaceDetailPage() {
   const router = useRouter();
 
   const [tagModalOpen, setTagModal] = useState<boolean>(false);
-  // TODO: wire this up to a WriteReviewModal component (same pattern as
-  // TagVotingModal) once the write-review flow is ready to build.
   const [reviewModalOpen, setReviewModal] = useState<boolean>(false);
 
   const { data: locationData, isLoading } = useQuery({
@@ -146,9 +145,11 @@ export default function PlaceDetailPage() {
       <TagVotingModal
         modalVisible={tagModalOpen}
         setModalVisible={setModalVisible}
+      />  
+      <AddReviewModal
+        modalVisible={reviewModalOpen}
+        setModalVisible={setReviewModalVisible}
       />
-      {/* WriteReviewModal will hook in here, mirroring TagVotingModal's
-          slide-up sheet pattern, once reviewModalOpen is wired to it. */}
     </View>
   );
 }

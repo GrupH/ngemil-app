@@ -8,6 +8,7 @@ export const colours = {
   heading: "#8B889E",
   text_primary: "#5A5869",
   text_secondary: "#8B889E",
+  text_placeholder: "#bebdce"
 };
 
 export const mapColours = {
