@@ -1,6 +1,6 @@
 import { colours } from "@/constants/style";
-import { getAllTags } from "@/lib/tags";
-import { useQuery } from "@tanstack/react-query";
+import { getAllTags, getUserTagVotesForLocation, unvoteTag, voteTag } from "@/lib/tags";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { Check, CheckCircle2 } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
@@ -29,6 +29,8 @@ export default function TagVotingModal({
   setModalVisible,
 }: TagVotingModalProps) {
 
+
+  const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const { data: tagsData, isLoading } = useQuery({
@@ -36,29 +38,31 @@ export default function TagVotingModal({
     queryFn: async () => {
       const { data: tags, error: tagsError } = await getAllTags()
 
-      //TODO: make adding tags require login
-      //TODO (optional): add tag colors in supabasez
+      //TODO (optional): add tag colors in supabase
 
-      //const { data: votes, error: votesError } = await getUserTagVotesForLocation(id)
+      const { data: votes, error: votesError } = await getUserTagVotesForLocation(id)
 
       if (tagsError) throw tagsError;
-      //if (votesError) throw votesError;
+      if (votesError) throw votesError;
 
-      //const votedTagIds = new Set(votes.map(v => v.tag_id));
+      const votedTagIds = new Set(votes.map((v) => v.tag_id));
 
       return tags.map(tag => ({
         id: tag.id,
         label: tag.tag,
-        voted: false,
+        voted: votedTagIds.has(tag.id),
       }));
     },
   });
 
   const [tags, setTags] = useState<Tag[]>([]);
+  const [initialVotedIds, setInitialVotedIds] = useState<Set<string>>(new Set());
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (tagsData) {
       setTags(tagsData);
+      setInitialVotedIds(new Set(tagsData.filter((t) => t.voted).map((t) => t.id)));
     }
   }, [tagsData]);
 
@@ -72,6 +76,46 @@ export default function TagVotingModal({
           : tag
       )
     );
+  };
+
+  const voteDiff = useMemo(() => {
+    const currentVotedIds = new Set(tags.filter((t) => t.voted).map((t) => t.id));
+    const toAdd = [...currentVotedIds].filter((tagId) => !initialVotedIds.has(tagId));
+    const toRemove = [...initialVotedIds].filter((tagId) => !currentVotedIds.has(tagId));
+      return { toAdd, toRemove };
+  }, [tags, initialVotedIds]);
+
+  const hasChanges = voteDiff.toAdd.length > 0 || voteDiff.toRemove.length > 0;
+
+  const handleSubmitVotes = async () => {
+    if (!id || isSubmitting) return;
+
+    const { toAdd, toRemove } = voteDiff;
+
+    if (toAdd.length === 0 && toRemove.length === 0) {
+      setModalVisible(false);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const results = await Promise.all([
+        ...toAdd.map((tagId) => voteTag(id, tagId)),
+        ...toRemove.map((tagId) => unvoteTag(id, tagId)),
+      ]);
+
+      const failed = results.find((r) => r.error);
+      if (failed) throw failed.error;
+
+      queryClient.invalidateQueries({ queryKey: ["locationTags", id] });
+      queryClient.invalidateQueries({ queryKey: ["locationById", id] });
+      setModalVisible(false);
+    } catch (err) {
+      console.error("Failed to submit tag votes:", err);
+      // optional: surface a toast/error state to the user here
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -150,11 +194,12 @@ export default function TagVotingModal({
           {/* Footer action */}
           <View style={styles.footer}>
             <Pressable
-              style={[styles.detailButton, votedCount === 0 && styles.buttonDisabled]}
-              onPress={() => setModalVisible(false)}
+              style={[styles.detailButton, !hasChanges && styles.buttonDisabled]}
+              onPress={handleSubmitVotes}
+              disabled={!hasChanges|| isSubmitting}
             >
-              <Text style={[styles.detailButtonText, votedCount === 0 && styles.buttonDisabledText]}>
-                Submit Votes
+              <Text style={[styles.detailButtonText, !hasChanges && styles.buttonDisabledText]}>
+                {isSubmitting ? "Submitting..." : "Submit Votes"}
               </Text>
             </Pressable>
           </View>
