@@ -3,8 +3,8 @@ import { supabase } from './supabase';
 export async function getAllTags() {
   return supabase
     .from('tags')
-    .select('id, name')
-    .order('name');
+    .select('id, tag')
+    .order('tag');
 }
 
 export async function getTagsForLocation(locationId: string) {

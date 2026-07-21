@@ -1,6 +1,9 @@
 import { colours } from "@/constants/style";
+import { getAllTags } from "@/lib/tags";
+import { useQuery } from "@tanstack/react-query";
+import { useLocalSearchParams } from "expo-router";
 import { Check, CheckCircle2 } from "lucide-react-native";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -13,22 +16,8 @@ import {
 type Tag = {
   id: string;
   label: string;
-  votes: number;
   voted: boolean;
 };
-
-const INITIAL_TAGS: Tag[] = [
-  { id: "cozy", label: "Cozy", votes: 24, voted: false },
-  { id: "good_for_groups", label: "Good for Groups", votes: 18, voted: true },
-  { id: "quiet", label: "Quiet", votes: 12, voted: false },
-  { id: "instagrammable", label: "Instagrammable", votes: 31, voted: false },
-  { id: "pet_friendly", label: "Pet Friendly", votes: 9, voted: false },
-  { id: "late_night", label: "Late Night", votes: 15, voted: false },
-  { id: "budget_friendly", label: "Budget Friendly", votes: 22, voted: true },
-  { id: "outdoor_seating", label: "Outdoor Seating", votes: 27, voted: false },
-  { id: "live_music", label: "Live Music", votes: 6, voted: false },
-  { id: "family_friendly", label: "Family Friendly", votes: 11, voted: false },
-];
 
 type TagVotingModalProps = {
   modalVisible: boolean;
@@ -39,7 +28,39 @@ export default function TagVotingModal({
   modalVisible,
   setModalVisible,
 }: TagVotingModalProps) {
-  const [tags, setTags] = useState<Tag[]>(INITIAL_TAGS);
+
+  const { id } = useLocalSearchParams<{ id: string }>();
+
+  const { data: tagsData, isLoading } = useQuery({
+    queryKey: ["locationTags", id],
+    queryFn: async () => {
+      const { data: tags, error: tagsError } = await getAllTags()
+
+      //TODO: make adding tags require login
+      //TODO (optional): add tag colors in supabasez
+
+      //const { data: votes, error: votesError } = await getUserTagVotesForLocation(id)
+
+      if (tagsError) throw tagsError;
+      //if (votesError) throw votesError;
+
+      //const votedTagIds = new Set(votes.map(v => v.tag_id));
+
+      return tags.map(tag => ({
+        id: tag.id,
+        label: tag.tag,
+        voted: false,
+      }));
+    },
+  });
+
+  const [tags, setTags] = useState<Tag[]>([]);
+
+  useEffect(() => {
+    if (tagsData) {
+      setTags(tagsData);
+    }
+  }, [tagsData]);
 
   const votedCount = useMemo(() => tags.filter((t) => t.voted).length, [tags]);
 
@@ -47,16 +68,11 @@ export default function TagVotingModal({
     setTags((prev) =>
       prev.map((tag) =>
         tag.id === id
-          ? { ...tag, voted: !tag.voted, votes: tag.voted ? tag.votes - 1 : tag.votes + 1 }
+          ? { ...tag, voted: !tag.voted }
           : tag
       )
     );
   };
-
-  const sortedTags = useMemo(
-    () => [...tags].sort((a, b) => b.votes - a.votes),
-    [tags]
-  );
 
   return (
     <Modal
@@ -101,7 +117,7 @@ export default function TagVotingModal({
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.chipWrap}>
-              {sortedTags.map((tag) => (
+              {tags.map((tag) => (
                 <Pressable
                   key={tag.id}
                   style={({ pressed }) => [
@@ -126,21 +142,6 @@ export default function TagVotingModal({
                   >
                     {tag.label}
                   </Text>
-                  <View
-                    style={[
-                      styles.countBadge,
-                      tag.voted && styles.countBadgeSelected,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.countText,
-                        tag.voted && styles.countTextSelected,
-                      ]}
-                    >
-                      {tag.votes}
-                    </Text>
-                  </View>
                 </Pressable>
               ))}
             </View>

@@ -7,6 +7,7 @@ import TagsSection from "@/components/TagsSection";
 import TagVotingModal from "@/components/TagVotingModal";
 import TopMenusSection from "@/components/TopMenusSection";
 import { colours } from "@/constants/style";
+import { useAuth } from "@/hooks/auth";
 import { getLocationById } from "@/lib/locations";
 import type { LocationByID, PlaceData } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
@@ -16,6 +17,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function PlaceDetailPage() {
+  const { user } = useAuth()
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
@@ -70,10 +72,26 @@ export default function PlaceDetailPage() {
   }
 
   function setModalVisible(visible: boolean) {
+    if (visible && !user) {
+      router.push({
+        pathname: '/auth',
+        params: { redirectTo: '/place-detail/[id]', id },
+      });
+      return;
+    }
+
     setTagModal(visible);
   }
 
   function setReviewModalVisible(visible: boolean) {
+    if (visible && !user) {
+      router.push({
+        pathname: '/auth',
+        params: { redirectTo: '/place-detail/[id]', id },
+      });
+      return;
+    }
+    
     setReviewModal(visible);
   }
 
@@ -82,7 +100,7 @@ export default function PlaceDetailPage() {
   return (
     <View>
       <Pressable
-        style={styles.modalContent}
+        style={styles.mainContent}
         onPress={(e) => e.stopPropagation()}
       >
         <View style={styles.headerContainer}>
@@ -162,7 +180,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 24,
   },
-  modalContent: {
+  mainContent: {
     backgroundColor: colours.primary_bg,
     height: "100%",
     width: "100%",
