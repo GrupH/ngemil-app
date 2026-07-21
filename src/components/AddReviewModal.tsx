@@ -1,4 +1,7 @@
 import { colours } from "@/constants/style";
+import { submitRating } from "@/lib/ratings";
+import { useQueryClient } from "@tanstack/react-query";
+import { useLocalSearchParams } from "expo-router";
 import { Star } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import {
@@ -35,10 +38,15 @@ export default function RatingReviewModal({
   placeName,
   onSubmit,
 }: RatingReviewModalProps) {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const queryClient = useQueryClient();
+
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const canSubmit = rating > 0;
+  const canSubmit = rating > 0 && !isSubmitting;
 
   const ratingLabel = useMemo(
     () => (rating > 0 ? RATING_LABELS[rating] : "Tap a star to rate"),
@@ -46,23 +54,46 @@ export default function RatingReviewModal({
   );
 
   const handleRate = (value: number) => {
-    if(rating === value){
-      setRating(0)
-      return
-    } 
-    setRating(value)
-  }
+    if (rating === value) {
+      setRating(0);
+      return;
+    }
+    setRating(value);
+    if (submitError) setSubmitError(null);
+  };
 
   const handleClose = () => {
     setModalVisible(false);
   };
 
-  const handleSubmit = () => {
-    if (!canSubmit) return;
-    onSubmit?.(rating, review.trim());
-    setRating(0);
-    setReview("");
-    setModalVisible(false);
+  const handleSubmit = async () => {
+    if (!canSubmit || !id) return;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      const trimmedReview = review.trim();
+      const { error } = await submitRating(
+        id,
+        rating,
+        trimmedReview.length > 0 ? trimmedReview : undefined
+      );
+
+      if (error) throw error;
+
+      onSubmit?.(rating, trimmedReview);
+      queryClient.invalidateQueries({ queryKey: ["locationById", id] });
+      queryClient.invalidateQueries({ queryKey: ["locationRatings", id] });
+
+      setRating(0);
+      setReview("");
+      setModalVisible(false);
+    } catch (err) {
+      console.error("Failed to submit rating:", err);
+      setSubmitError("Couldn't submit your review. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -72,23 +103,19 @@ export default function RatingReviewModal({
       visible={modalVisible}
       onRequestClose={handleClose}
     >
-      {/* The invisible backdrop to close the modal on tap */}
       <Pressable style={styles.backdrop} onPress={handleClose}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={styles.keyboardWrap}
         >
-          {/* The modal content container */}
           <Pressable
             style={styles.modalContent}
             onPress={(e) => e.stopPropagation()}
           >
-            {/* Drag handle */}
             <View style={styles.dragHandleContainer}>
               <View style={styles.dragHandle} />
             </View>
 
-            {/* Title */}
             <Text style={styles.placeTitle}>Add Your Review</Text>
             <Text style={styles.infoTextMuted}>
               {placeName
@@ -96,7 +123,6 @@ export default function RatingReviewModal({
                 : "Share your experience with this spot"}
             </Text>
 
-            {/* Star rating selector */}
             <View style={styles.starRow}>
               {[1, 2, 3, 4, 5].map((value) => {
                 const filled = value <= rating;
@@ -130,7 +156,6 @@ export default function RatingReviewModal({
               {ratingLabel}
             </Text>
 
-            {/* Review text input */}
             <View style={styles.reviewInputContainer}>
               <TextInput
                 style={styles.reviewInput}
@@ -147,7 +172,6 @@ export default function RatingReviewModal({
               </Text>
             </View>
 
-            {/* Footer action */}
             <View style={styles.footer}>
               <Pressable
                 style={[
@@ -163,7 +187,7 @@ export default function RatingReviewModal({
                     !canSubmit && styles.buttonDisabledText,
                   ]}
                 >
-                  Submit Review
+                  {isSubmitting ? "Submitting..." : "Submit Review"}
                 </Text>
               </Pressable>
             </View>
