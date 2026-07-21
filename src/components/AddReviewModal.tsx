@@ -2,14 +2,14 @@ import { colours } from "@/constants/style";
 import { Star } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
 const MAX_REVIEW_LENGTH = 500;
@@ -44,6 +44,14 @@ export default function RatingReviewModal({
     () => (rating > 0 ? RATING_LABELS[rating] : "Tap a star to rate"),
     [rating]
   );
+
+  const handleRate = (value: number) => {
+    if(rating === value){
+      setRating(0)
+      return
+    } 
+    setRating(value)
+  }
 
   const handleClose = () => {
     setModalVisible(false);
@@ -99,7 +107,7 @@ export default function RatingReviewModal({
                       styles.starButton,
                       pressed && styles.starButtonPressed,
                     ]}
-                    onPress={() => setRating(value)}
+                    onPress={() => handleRate(value)}
                     hitSlop={6}
                   >
                     <Star

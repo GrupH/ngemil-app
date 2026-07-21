@@ -12,17 +12,25 @@ type TagsSectionProps = {
 export default function TagsSection({
   tags,
   isAdd = false,
-  openModal
+  openModal,
 }: TagsSectionProps) {
   return (
     <View style={styles.sectionContainer}>
       <Text style={styles.sectionHeading}>TAGS</Text>
       <View style={styles.tagRow}>
-        {tags.map((tag, index) => {
-          return <Tag key={index} text={tag.name} count={tag.count} />;
-        })}
+        {tags.map((tag) => (
+          <Tag key={tag.name} text={tag.name} count={tag.count} />
+        ))}
+
         {!isAdd && (
-          <Pressable style={styles.addTagButton} onPress={openModal}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.addTagButton,
+              pressed && styles.addTagButtonPressed,
+            ]}
+            onPress={openModal}
+            hitSlop={6}
+          >
             <Plus color="#8B889E" size={12} />
             <Text style={styles.addTagText}>Add</Text>
           </Pressable>
@@ -47,19 +55,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
-    gap: 8,
+    rowGap: 12,
+    columnGap: 8,
   },
   addTagButton: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: 4,
     paddingHorizontal: 12,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colours.heading,
     borderStyle: "dashed",
     backgroundColor: "transparent",
+  },
+  addTagButtonPressed: {
+    opacity: 0.6,
   },
   addTagText: {
     fontSize: 12,

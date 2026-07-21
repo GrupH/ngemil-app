@@ -112,7 +112,7 @@ export default function TagVotingModal({
       setModalVisible(false);
     } catch (err) {
       console.error("Failed to submit tag votes:", err);
-      // optional: surface a toast/error state to the user here
+      //TODO: toast for success
     } finally {
       setIsSubmitting(false);
     }
