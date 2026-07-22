@@ -25,6 +25,7 @@ export type NearbyLocations = {
 
 export type Review = {
   id: string;
+  user_id: string,
   username: string;
   rating: number;
   avatar: string;
@@ -51,6 +52,7 @@ export interface LocationRatingSummary {
 
 export interface LocationRating {
   id: string;
+  user_id: string,
   rating: number;
   comment: string;
   created_at: string;
@@ -67,6 +69,7 @@ export interface LocationTagVoteSummary {
 
 export type LocationByID = {
   id: string;
+  user_id: string;
   name: string;
   description: string;
   address: string;

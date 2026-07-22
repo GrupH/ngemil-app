@@ -61,6 +61,7 @@ export default function PlaceDetailPage() {
       reviews: location.location_ratings.map((item) => {
         return {
           id: item.id,
+          user_id: item.user_id,
           comment: item.comment,
           avatar: item.profiles.avatar_url,
           username: item.profiles.username,

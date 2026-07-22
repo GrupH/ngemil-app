@@ -1,4 +1,5 @@
 import { colours } from "@/constants/style";
+import { useAuth } from "@/hooks/auth";
 import type { Review } from "@/types/types";
 import { ChevronRight, Plus, Star, User } from "lucide-react-native";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
@@ -16,11 +17,13 @@ export default function ReviewsSection({
 }: ReviewsSectionProps) {
   const hasReviews = reviews && reviews.length > 0;
 
+  const { user } = useAuth()
+
   // Compact preview (e.g. inside another modal) stays silent when empty,
   // same behaviour the section always had.
   if (!hasReviews && isModal) return null;
 
-  const showAddButton = !isModal && !!onAddReview;
+  const showAddButton = !isModal && !!onAddReview && !reviews.find((review) => review.user_id === user?.id);
 
   return (
     <View style={styles.sectionContainer}>
@@ -69,7 +72,7 @@ export default function ReviewsSection({
             styles.addReviewCard,
             pressed && styles.addReviewCardPressed,
           ]}
-          onPress={onAddReview}
+          onPress={!reviews.find((review) => review.user_id === user?.id) ? onAddReview : () => {}}
         >
           <View style={styles.addReviewIconCircle}>
             <Plus color={colours.secondary_bg} size={16} strokeWidth={2.5} />

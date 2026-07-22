@@ -24,7 +24,7 @@ export async function getLocationById(id: string) {
       description,
       submitted_by,
       location_images(storage_path, is_cover),
-      location_ratings(id, rating, comment, profiles(username, avatar_url), created_at),
+      location_ratings(id, rating, comment, user_id, profiles(username, avatar_url), created_at),
       location_rating_summary(avg_rating, rating_count),
       location_tag_vote_summary(vote_count, tags(tag))
     `,
