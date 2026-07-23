@@ -14,7 +14,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MapPin, Star } from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PlaceDetailPage() {
   const { user } = useAuth()
@@ -99,10 +100,9 @@ export default function PlaceDetailPage() {
   if (isLoading) return <PlaceDetailSkeleton variant="page" />;
 
   return (
-    <View>
-      <Pressable
+    <SafeAreaView>
+      <View
         style={styles.mainContent}
-        onPress={(e) => e.stopPropagation()}
       >
         <View style={styles.headerContainer}>
           <BackButton
@@ -160,7 +160,7 @@ export default function PlaceDetailPage() {
             onAddReview={() => setReviewModalVisible(true)}
           />
         </ScrollView>
-      </Pressable>
+      </View>
       <TagVotingModal
         modalVisible={tagModalOpen}
         setModalVisible={setModalVisible}
@@ -169,7 +169,7 @@ export default function PlaceDetailPage() {
         modalVisible={reviewModalOpen}
         setModalVisible={setReviewModalVisible}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   scrollableContent: {
     padding: 24,
     width: "100%",
-    height: "100%",
+    flexGrow: 1,
   },
   placeTitle: {
     flexShrink: 1,

@@ -338,6 +338,7 @@ const App = () => {
       const photos = images.map((i: any) => i.storage_path);
       const reviews = (data.location_ratings ?? []).map((r: any) => ({
         id: r.id,
+        user_id: r.user_id,
         username: r.profiles.username,
         rating: r.rating,
         comment: r.comment,

@@ -3,15 +3,15 @@ import { getAllTags, getUserTagVotesForLocation, unvoteTag, voteTag } from "@/li
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { Check, CheckCircle2 } from "lucide-react-native";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import ModalComponent, { type ModalHandle } from "./ModalComponent";
 
 type Tag = {
   id: string;
@@ -28,7 +28,7 @@ export default function TagVotingModal({
   modalVisible,
   setModalVisible,
 }: TagVotingModalProps) {
-
+  const modalRef = useRef<ModalHandle>(null);
 
   const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -93,7 +93,7 @@ export default function TagVotingModal({
     const { toAdd, toRemove } = voteDiff;
 
     if (toAdd.length === 0 && toRemove.length === 0) {
-      setModalVisible(false);
+      modalRef.current?.close();
       return;
     }
 
@@ -109,7 +109,7 @@ export default function TagVotingModal({
 
       queryClient.invalidateQueries({ queryKey: ["locationTags", id] });
       queryClient.invalidateQueries({ queryKey: ["locationById", id] });
-      setModalVisible(false);
+      modalRef.current?.close();
     } catch (err) {
       console.error("Failed to submit tag votes:", err);
       //TODO: toast for success
@@ -119,122 +119,85 @@ export default function TagVotingModal({
   };
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
+    <ModalComponent
+      ref={modalRef}
       visible={modalVisible}
-      onRequestClose={() => setModalVisible(false)}
+      onClose={() => setModalVisible(false)}
     >
-      {/* The invisible backdrop to close the modal on tap */}
-      <Pressable style={styles.backdrop} onPress={() => setModalVisible(false)}>
-        {/* The modal content container */}
-        <Pressable
-          style={styles.modalContent}
-          onPress={(e) => e.stopPropagation()}
+      {/* Main info section (not scrollable) */}
+      <View style={styles.infoContainer}>
+        {/* Title */}
+        <Text style={styles.placeTitle}>Vote for Tags</Text>
+
+        {/* Subtitle / helper row */}
+        <View style={styles.infoRow}>
+          <View style={styles.infoItem}>
+            <CheckCircle2 color={colours.accent_1} size={16} />
+            <Text style={styles.infoTextBold}>{votedCount} selected</Text>
+          </View>
+          <Text style={styles.infoTextMuted}>
+            Tap a tag to vote for how well it fits this spot
+          </Text>
+        </View>
+      </View>
+
+      {/* Scrollable tag list, wrapped in a View rather than being a direct
+          child of the modal's content Pressable */}
+      <View style={styles.scrollWrapper}>
+        <ScrollView
+          style={styles.scrollArea}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          {/* Main info section (not scrollable) */}
-          <View style={styles.infoContainer}>
-            {/* Drag handle */}
-            <View style={styles.dragHandleContainer}>
-              <View style={styles.dragHandle} />
-            </View>
-
-            {/* Title */}
-            <Text style={styles.placeTitle}>Vote for Tags</Text>
-
-            {/* Subtitle / helper row */}
-            <View style={styles.infoRow}>
-              <View style={styles.infoItem}>
-                <CheckCircle2 color={colours.accent_1} size={16}/>
-                <Text style={styles.infoTextBold}>{votedCount} selected</Text>
-              </View>
-              <Text style={styles.infoTextMuted}>
-                Tap a tag to vote for how well it fits this spot
-              </Text>
-            </View>
-          </View>
-
-          {/* Scrollable tag list */}
-          <ScrollView
-            style={styles.scrollArea}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.chipWrap}>
-              {tags.map((tag) => (
-                <Pressable
-                  key={tag.id}
-                  style={({ pressed }) => [
-                    styles.chip,
-                    tag.voted && styles.chipSelected,
-                    pressed && styles.chipPressed,
+          <View style={styles.chipWrap}>
+            {tags.map((tag) => (
+              <Pressable
+                key={tag.id}
+                style={({ pressed }) => [
+                  styles.chip,
+                  tag.voted && styles.chipSelected,
+                  pressed && styles.chipPressed,
+                ]}
+                onPress={() => toggleVote(tag.id)}
+              >
+                {tag.voted && (
+                  <Check
+                    color={colours.secondary_bg}
+                    size={14}
+                    style={styles.chipCheckIcon}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.chipText,
+                    tag.voted && styles.chipTextSelected,
                   ]}
-                  onPress={() => toggleVote(tag.id)}
                 >
-                  {tag.voted && (
-                    <Check
-                      color={colours.secondary_bg}
-                      size={14}
-                      style={styles.chipCheckIcon}
-                    />
-                  )}
-                  <Text
-                    style={[
-                      styles.chipText,
-                      tag.voted && styles.chipTextSelected,
-                    ]}
-                  >
-                    {tag.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </ScrollView>
-
-          {/* Footer action */}
-          <View style={styles.footer}>
-            <Pressable
-              style={[styles.detailButton, !hasChanges && styles.buttonDisabled]}
-              onPress={handleSubmitVotes}
-              disabled={!hasChanges|| isSubmitting}
-            >
-              <Text style={[styles.detailButtonText, !hasChanges && styles.buttonDisabledText]}>
-                {isSubmitting ? "Submitting..." : "Submit Votes"}
-              </Text>
-            </Pressable>
+                  {tag.label}
+                </Text>
+              </Pressable>
+            ))}
           </View>
+        </ScrollView>
+      </View>
+
+      {/* Footer action */}
+      <View style={styles.footer}>
+        <Pressable
+          style={[styles.detailButton, !hasChanges && styles.buttonDisabled]}
+          onPress={handleSubmitVotes}
+          disabled={!hasChanges || isSubmitting}
+        >
+          <Text style={[styles.detailButtonText, !hasChanges && styles.buttonDisabledText]}>
+            {isSubmitting ? "Submitting..." : "Submit Votes"}
+          </Text>
         </Pressable>
-      </Pressable>
-    </Modal>
+      </View>
+    </ModalComponent>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    maxHeight: "85%",
-    width: "100%",
-    paddingHorizontal: 24,
-    paddingBottom: 34,
-  },
-  dragHandleContainer: {
-    width: "100%",
-    alignItems: "center",
-    paddingVertical: 14,
-  },
-  dragHandle: {
-    width: 48,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: "#E5E5E5",
-  },
   infoContainer: {
     borderBottomWidth: 1,
     borderBottomColor: colours.border_1,
@@ -270,6 +233,9 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: colours.text_secondary,
     lineHeight: 18,
+  },
+  scrollWrapper: {
+    flexShrink: 1,
   },
   scrollArea: {
     marginTop: 4,
