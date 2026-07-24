@@ -2,6 +2,7 @@ import { colours } from "@/constants/style";
 import { useAuth } from "@/hooks/auth";
 import type { Review } from "@/types/types";
 import { ChevronRight, Plus, Star, User } from "lucide-react-native";
+import { useMemo } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 type ReviewsSectionProps = {
@@ -17,13 +18,20 @@ export default function ReviewsSection({
 }: ReviewsSectionProps) {
   const hasReviews = reviews && reviews.length > 0;
 
-  const { user } = useAuth()
+  const { user } = useAuth();
 
-  // Compact preview (e.g. inside another modal) stays silent when empty,
-  // same behaviour the section always had.
+  // Put the logged-in user's review first, keep the rest in their existing order
+  const orderedReviews = useMemo(() => {
+    if (!hasReviews || !user?.id) return reviews;
+    const ownReview = reviews.find((review) => review.user_id === user.id);
+    if (!ownReview) return reviews;
+    return [ownReview, ...reviews.filter((review) => review.user_id !== user.id)];
+  }, [reviews, hasReviews, user?.id]);
+
   if (!hasReviews && isModal) return null;
 
-  const showAddButton = !isModal && !!onAddReview && !reviews.find((review) => review.user_id === user?.id);
+  const userHasReview = !!reviews.find((review) => review.user_id === user?.id);
+  const showAddButton = !isModal && !!onAddReview && !userHasReview;
 
   return (
     <View style={styles.sectionContainer}>
@@ -33,36 +41,49 @@ export default function ReviewsSection({
 
       {hasReviews && (
         <View style={styles.reviewsList}>
-          {reviews.map((review) => (
-            <View key={review.id} style={styles.reviewCard}>
-              <View style={styles.reviewHeader}>
-                <View style={styles.avatarContainer}>
-                  {review.avatar ? (
-                    <Image
-                      source={{ uri: review.avatar }}
-                      style={styles.avatar}
-                    />
-                  ) : (
-                    <User color={colours.accent_1} />
-                  )}
-                </View>
-                <View style={styles.reviewUserMeta}>
-                  <Text style={styles.username}>{review.username}</Text>
-                  <View style={styles.starsRow}>
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        color={i < review.rating ? "#949FF1" : "#E5E5E5"}
-                        fill={i < review.rating ? "#949FF1" : "#E5E5E5"}
-                        size={12}
+          {orderedReviews.map((review) => {
+            const isOwnReview = review.user_id === user?.id;
+
+            return (
+              <View
+                key={review.id}
+                style={[
+                  styles.reviewCard,
+                  isOwnReview && styles.ownReviewCard,
+                ]}
+              >
+                <View style={styles.reviewHeader}>
+                  <View style={styles.avatarContainer}>
+                    {review.avatar ? (
+                      <Image
+                        source={{ uri: review.avatar }}
+                        style={styles.avatar}
                       />
-                    ))}
+                    ) : (
+                      <User color={colours.accent_1} />
+                    )}
+                  </View>
+                  <View style={styles.reviewUserMeta}>
+                    <Text style={styles.username}>
+                      {review.username}
+                      {isOwnReview ? " (You)" : ""}
+                    </Text>
+                    <View style={styles.starsRow}>
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          color={i < review.rating ? "#949FF1" : "#E5E5E5"}
+                          fill={i < review.rating ? "#949FF1" : "#E5E5E5"}
+                          size={12}
+                        />
+                      ))}
+                    </View>
                   </View>
                 </View>
+                <Text style={styles.reviewText}>{review.comment}</Text>
               </View>
-              <Text style={styles.reviewText}>{review.comment}</Text>
-            </View>
-          ))}
+            );
+          })}
         </View>
       )}
 
@@ -72,7 +93,7 @@ export default function ReviewsSection({
             styles.addReviewCard,
             pressed && styles.addReviewCardPressed,
           ]}
-          onPress={!reviews.find((review) => review.user_id === user?.id) ? onAddReview : () => {}}
+          onPress={onAddReview}
         >
           <View style={styles.addReviewIconCircle}>
             <Plus color={colours.secondary_bg} size={16} strokeWidth={2.5} />
@@ -152,6 +173,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     padding: 16,
     gap: 8,
+  },
+  ownReviewCard: {
+    borderColor: colours.accent_1,
   },
   reviewHeader: {
     flexDirection: "row",

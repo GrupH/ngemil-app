@@ -46,8 +46,8 @@ const ModalComponent = forwardRef<ModalHandle, ModalProps>(
       maxHeight = "85%",
       closeOnBackdropPress = true,
       openDuration = 300,
-      closeDuration = 250,
-      contentStyle,
+      closeDuration = 200,
+      contentStyle
     },
     ref
   ) {

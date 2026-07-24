@@ -48,6 +48,8 @@ export default function TagVotingModal({
   const { data: tagsData, isLoading: locationTagsLoading } = useQuery({
     queryKey: ["locationTags", id],
     queryFn: async () => {
+
+      if(!allTags) return []
       
 
       //TODO (optional): add tag colors in supabase
@@ -57,8 +59,6 @@ export default function TagVotingModal({
       if (votesError) throw votesError;
 
       const votedTagIds = new Set(votes.map((v) => v.tag_id));
-
-      if(!allTags) return
 
       return allTags.map(tag => ({
         id: tag.id,
@@ -199,11 +199,11 @@ export default function TagVotingModal({
       {/* Footer action */}
       <View style={styles.footer}>
         <Pressable
-          style={[styles.detailButton, !hasChanges && styles.buttonDisabled]}
+          style={[styles.detailButton, (!hasChanges || isSubmitting) && styles.buttonDisabled]}
           onPress={handleSubmitVotes}
           disabled={!hasChanges || isSubmitting}
         >
-          <Text style={[styles.detailButtonText, !hasChanges && styles.buttonDisabledText]}>
+          <Text style={[styles.detailButtonText, (!hasChanges || isSubmitting) && styles.buttonDisabledText]}>
             {isSubmitting ? "Submitting..." : "Submit Votes"}
           </Text>
         </Pressable>

@@ -1,118 +1,91 @@
 import { colours } from "@/constants/style";
-import { getAllTags, getUserTagVotesForLocation, unvoteTag, voteTag } from "@/lib/tags";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { submitRating } from "@/lib/ratings";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
-import { Check, CheckCircle2 } from "lucide-react-native";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Star } from "lucide-react-native";
+import { useMemo, useRef, useState } from "react";
 import {
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import ModalComponent, { type ModalHandle } from "./ModalComponent";
 
-type Tag = {
-  id: string;
-  label: string;
-  voted: boolean;
+const MAX_REVIEW_LENGTH = 500;
+
+const RATING_LABELS: Record<number, string> = {
+  1: "Not great",
+  2: "Could be better",
+  3: "Pretty good",
+  4: "Really good",
+  5: "Amazing!",
 };
 
-type TagVotingModalProps = {
+type RatingReviewModalProps = {
   modalVisible: boolean;
   setModalVisible: (visible: boolean) => void;
+  placeName?: string;
+  onSubmit?: (rating: number, review: string) => void;
 };
 
-export default function TagVotingModal({
+export default function RatingReviewModal({
   modalVisible,
   setModalVisible,
-}: TagVotingModalProps) {
+  placeName,
+  onSubmit,
+}: RatingReviewModalProps) {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const queryClient = useQueryClient();
   const modalRef = useRef<ModalHandle>(null);
 
-  const queryClient = useQueryClient();
-  const { id } = useLocalSearchParams<{ id: string }>();
-
-  const { data: tagsData, isLoading } = useQuery({
-    queryKey: ["locationTags", id],
-    queryFn: async () => {
-      const { data: tags, error: tagsError } = await getAllTags()
-
-      //TODO (optional): add tag colors in supabase
-
-      const { data: votes, error: votesError } = await getUserTagVotesForLocation(id)
-
-      if (tagsError) throw tagsError;
-      if (votesError) throw votesError;
-
-      const votedTagIds = new Set(votes.map((v) => v.tag_id));
-
-      return tags.map(tag => ({
-        id: tag.id,
-        label: tag.tag,
-        voted: votedTagIds.has(tag.id),
-      }));
-    },
-  });
-
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [initialVotedIds, setInitialVotedIds] = useState<Set<string>>(new Set());
+  const [rating, setRating] = useState(0);
+  const [review, setReview] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (tagsData) {
-      setTags(tagsData);
-      setInitialVotedIds(new Set(tagsData.filter((t) => t.voted).map((t) => t.id)));
-    }
-  }, [tagsData]);
+  const canSubmit = rating > 0 && !isSubmitting;
 
-  const votedCount = useMemo(() => tags.filter((t) => t.voted).length, [tags]);
+  const ratingLabel = useMemo(
+    () => (rating > 0 ? RATING_LABELS[rating] : "Tap a star to rate"),
+    [rating]
+  );
 
-  const toggleVote = (id: string) => {
-    setTags((prev) =>
-      prev.map((tag) =>
-        tag.id === id
-          ? { ...tag, voted: !tag.voted }
-          : tag
-      )
-    );
-  };
-
-  const voteDiff = useMemo(() => {
-    const currentVotedIds = new Set(tags.filter((t) => t.voted).map((t) => t.id));
-    const toAdd = [...currentVotedIds].filter((tagId) => !initialVotedIds.has(tagId));
-    const toRemove = [...initialVotedIds].filter((tagId) => !currentVotedIds.has(tagId));
-      return { toAdd, toRemove };
-  }, [tags, initialVotedIds]);
-
-  const hasChanges = voteDiff.toAdd.length > 0 || voteDiff.toRemove.length > 0;
-
-  const handleSubmitVotes = async () => {
-    if (!id || isSubmitting) return;
-
-    const { toAdd, toRemove } = voteDiff;
-
-    if (toAdd.length === 0 && toRemove.length === 0) {
-      modalRef.current?.close();
+  const handleRate = (value: number) => {
+    if (rating === value) {
+      setRating(0);
       return;
     }
+    setRating(value);
+    if (submitError) setSubmitError(null);
+  };
+
+  const handleSubmit = async () => {
+    if (!canSubmit || !id) return;
 
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
-      const results = await Promise.all([
-        ...toAdd.map((tagId) => voteTag(id, tagId)),
-        ...toRemove.map((tagId) => unvoteTag(id, tagId)),
-      ]);
+      const trimmedReview = review.trim();
+      const { error } = await submitRating(
+        id,
+        rating,
+        trimmedReview.length > 0 ? trimmedReview : undefined
+      );
 
-      const failed = results.find((r) => r.error);
-      if (failed) throw failed.error;
+      if (error) throw error;
 
-      queryClient.invalidateQueries({ queryKey: ["locationTags", id] });
+      onSubmit?.(rating, trimmedReview);
       queryClient.invalidateQueries({ queryKey: ["locationById", id] });
+      queryClient.invalidateQueries({ queryKey: ["locationRatings", id] });
+
+      setRating(0);
+      setReview("");
       modalRef.current?.close();
     } catch (err) {
-      console.error("Failed to submit tag votes:", err);
-      //TODO: toast for success
+      console.error("Failed to submit rating:", err);
+      setSubmitError("Couldn't submit your review. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -123,73 +96,74 @@ export default function TagVotingModal({
       ref={modalRef}
       visible={modalVisible}
       onClose={() => setModalVisible(false)}
+      maxHeight="100%"
     >
-      {/* Main info section (not scrollable) */}
-      <View style={styles.infoContainer}>
-        {/* Title */}
-        <Text style={styles.placeTitle}>Vote for Tags</Text>
+      <Text style={styles.placeTitle}>Add Your Review</Text>
+      <Text style={styles.infoTextMuted}>
+        {placeName
+          ? `Share your experience at ${placeName}`
+          : "Share your experience with this spot"}
+      </Text>
 
-        {/* Subtitle / helper row */}
-        <View style={styles.infoRow}>
-          <View style={styles.infoItem}>
-            <CheckCircle2 color={colours.accent_1} size={16} />
-            <Text style={styles.infoTextBold}>{votedCount} selected</Text>
-          </View>
-          <Text style={styles.infoTextMuted}>
-            Tap a tag to vote for how well it fits this spot
-          </Text>
-        </View>
+      <View style={styles.starRow}>
+        {[1, 2, 3, 4, 5].map((value) => {
+          const filled = value <= rating;
+          return (
+            <Pressable
+              key={value}
+              style={({ pressed }) => [
+                styles.starButton,
+                pressed && styles.starButtonPressed,
+              ]}
+              onPress={() => handleRate(value)}
+              hitSlop={6}
+            >
+              <Star
+                size={36}
+                color={filled ? colours.accent_1 : colours.border_1}
+                fill={filled ? colours.accent_1 : "transparent"}
+                strokeWidth={filled ? 0 : 1.5}
+              />
+            </Pressable>
+          );
+        })}
       </View>
 
-      {/* Scrollable tag list, wrapped in a View rather than being a direct
-          child of the modal's content Pressable */}
-      <View style={styles.scrollWrapper}>
-        <ScrollView
-          style={styles.scrollArea}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.chipWrap}>
-            {tags.map((tag) => (
-              <Pressable
-                key={tag.id}
-                style={({ pressed }) => [
-                  styles.chip,
-                  tag.voted && styles.chipSelected,
-                  pressed && styles.chipPressed,
-                ]}
-                onPress={() => toggleVote(tag.id)}
-              >
-                {tag.voted && (
-                  <Check
-                    color={colours.secondary_bg}
-                    size={14}
-                    style={styles.chipCheckIcon}
-                  />
-                )}
-                <Text
-                  style={[
-                    styles.chipText,
-                    tag.voted && styles.chipTextSelected,
-                  ]}
-                >
-                  {tag.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </ScrollView>
+      <Text
+        style={[styles.ratingLabel, rating > 0 && styles.ratingLabelActive]}
+      >
+        {ratingLabel}
+      </Text>
+
+      <View style={styles.reviewInputContainer}>
+        <TextInput
+          style={styles.reviewInput}
+          placeholder="What stood out? What could be better? (optional)"
+          placeholderTextColor={colours.text_placeholder}
+          multiline
+          maxLength={MAX_REVIEW_LENGTH}
+          value={review}
+          onChangeText={setReview}
+          textAlignVertical="top"
+        />
+        <Text style={styles.charCount}>
+          {review.length}/{MAX_REVIEW_LENGTH}
+        </Text>
       </View>
 
-      {/* Footer action */}
       <View style={styles.footer}>
         <Pressable
-          style={[styles.detailButton, !hasChanges && styles.buttonDisabled]}
-          onPress={handleSubmitVotes}
-          disabled={!hasChanges || isSubmitting}
+          style={[styles.detailButton, !canSubmit && styles.buttonDisabled]}
+          onPress={handleSubmit}
+          disabled={!canSubmit}
         >
-          <Text style={[styles.detailButtonText, !hasChanges && styles.buttonDisabledText]}>
-            {isSubmitting ? "Submitting..." : "Submit Votes"}
+          <Text
+            style={[
+              styles.detailButtonText,
+              !canSubmit && styles.buttonDisabledText,
+            ]}
+          >
+            {isSubmitting ? "Submitting..." : "Submit Review"}
           </Text>
         </Pressable>
       </View>
@@ -198,103 +172,61 @@ export default function TagVotingModal({
 }
 
 const styles = StyleSheet.create({
-  infoContainer: {
-    borderBottomWidth: 1,
-    borderBottomColor: colours.border_1,
-    marginHorizontal: -24,
-    paddingHorizontal: 24,
-    marginTop: 16,
-    paddingTop: 16,
-    paddingBottom: 16,
-  },
   placeTitle: {
     fontSize: 22,
     fontWeight: "800",
     color: colours.text_primary,
     fontFamily: "System",
-  },
-  infoRow: {
-    marginTop: 10,
-    marginBottom: 4,
-    gap: 6,
-  },
-  infoItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  infoTextBold: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: colours.text_primary,
+    marginTop: 4,
   },
   infoTextMuted: {
     fontSize: 13,
     fontWeight: "500",
     color: colours.text_secondary,
     lineHeight: 18,
+    marginTop: 6,
   },
-  scrollWrapper: {
-    flexShrink: 1,
-  },
-  scrollArea: {
-    marginTop: 4,
-  },
-  scrollContent: {
-    paddingVertical: 20,
-  },
-  chipWrap: {
+  starRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    justifyContent: "center",
     gap: 10,
+    marginTop: 28,
   },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: colours.border_1,
-    backgroundColor: colours.primary_bg,
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    gap: 6,
+  starButton: {
+    padding: 4,
   },
-  chipSelected: {
-    borderColor: colours.accent_1,
-    backgroundColor: colours.accent_1,
+  starButtonPressed: {
+    opacity: 0.6,
   },
-  chipPressed: {
-    opacity: 0.7,
-  },
-  chipCheckIcon: {
-    marginRight: -2,
-  },
-  chipText: {
+  ratingLabel: {
+    marginTop: 12,
+    textAlign: "center",
     fontSize: 14,
     fontWeight: "600",
-    color: colours.text_primary,
-  },
-  chipTextSelected: {
-    color: colours.secondary_bg,
-  },
-  countBadge: {
-    backgroundColor: colours.border_1,
-    borderRadius: 10,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    minWidth: 22,
-    alignItems: "center",
-  },
-  countBadgeSelected: {
-    backgroundColor: "rgba(255, 255, 255, 0.25)",
-  },
-  countText: {
-    fontSize: 12,
-    fontWeight: "700",
     color: colours.text_secondary,
   },
-  countTextSelected: {
-    color: colours.secondary_bg,
+  ratingLabelActive: {
+    color: colours.accent_1,
+  },
+  reviewInputContainer: {
+    marginTop: 24,
+    borderWidth: 1.5,
+    borderColor: colours.border_1,
+    borderRadius: 16,
+    padding: 14,
+  },
+  reviewInput: {
+    minHeight: 120,
+    fontSize: 14,
+    fontWeight: "500",
+    color: colours.text_primary,
+  },
+  charCount: {
+    alignSelf: "flex-end",
+    fontSize: 11,
+    fontWeight: "500",
+    color: colours.text_secondary,
+    marginTop: 4,
   },
   footer: {
     borderTopWidth: 1,
@@ -302,6 +234,7 @@ const styles = StyleSheet.create({
     marginHorizontal: -24,
     paddingHorizontal: 24,
     paddingTop: 16,
+    marginTop: 24,
   },
   detailButton: {
     width: "100%",
