@@ -55,8 +55,7 @@ export function useLocation() {
               if (geocode && geocode.length > 0) {
                 const addr = geocode[0];
                 name =
-                  addr.street ||
-                  addr.name ||
+                  //addr.street || TODO: Decide on whether to use streetname or not
                   addr.district ||
                   addr.city ||
                   addr.subregion ||
