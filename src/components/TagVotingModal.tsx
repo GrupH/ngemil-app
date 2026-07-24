@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import ModalComponent, { type ModalHandle } from "./ModalComponent";
+import TagVotingSkeleton from "./Skeleton/TagVotingSkeleton";
 
 type Tag = {
   id: string;
@@ -33,21 +34,33 @@ export default function TagVotingModal({
   const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const { data: tagsData, isLoading } = useQuery({
-    queryKey: ["locationTags", id],
+  const { data: allTags, isLoading} = useQuery({
+    queryKey: ["allTags"],
     queryFn: async () => {
       const { data: tags, error: tagsError } = await getAllTags()
+
+      if (tagsError) throw tagsError;
+
+      return tags;
+    }
+  })
+
+  const { data: tagsData, isLoading: locationTagsLoading } = useQuery({
+    queryKey: ["locationTags", id],
+    queryFn: async () => {
+      
 
       //TODO (optional): add tag colors in supabase
 
       const { data: votes, error: votesError } = await getUserTagVotesForLocation(id)
 
-      if (tagsError) throw tagsError;
       if (votesError) throw votesError;
 
       const votedTagIds = new Set(votes.map((v) => v.tag_id));
 
-      return tags.map(tag => ({
+      if(!allTags) return
+
+      return allTags.map(tag => ({
         id: tag.id,
         label: tag.tag,
         voted: votedTagIds.has(tag.id),
@@ -117,6 +130,8 @@ export default function TagVotingModal({
       setIsSubmitting(false);
     }
   };
+
+  if(isLoading || locationTagsLoading) return <TagVotingSkeleton modalVisible={modalVisible} setModalVisible={setModalVisible}/>
 
   return (
     <ModalComponent
