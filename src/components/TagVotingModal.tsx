@@ -131,7 +131,7 @@ export default function TagVotingModal({
     }
   };
 
-  if(isLoading || locationTagsLoading) return <TagVotingSkeleton modalVisible={modalVisible} setModalVisible={setModalVisible}/>
+  if(isLoading || locationTagsLoading || !allTags || allTags.length === 0) return <TagVotingSkeleton modalVisible={modalVisible} setModalVisible={setModalVisible}/>
 
   return (
     <ModalComponent

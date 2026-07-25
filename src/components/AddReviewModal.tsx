@@ -97,6 +97,7 @@ export default function RatingReviewModal({
       visible={modalVisible}
       onClose={() => setModalVisible(false)}
       maxHeight="100%"
+      keyboardAvoiding
     >
       <Text style={styles.placeTitle}>Add Your Review</Text>
       <Text style={styles.infoTextMuted}>

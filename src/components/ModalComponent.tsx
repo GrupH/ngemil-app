@@ -3,11 +3,15 @@ import {
   useEffect,
   useImperativeHandle,
   useRef,
+  useState,
 } from "react";
 import {
   Animated,
   Dimensions,
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -28,6 +32,8 @@ type ModalProps = {
   closeDuration?: number;
   /** Extra styles applied to the sheet container. */
   contentStyle?: ViewStyle;
+  /** Wraps the sheet in a KeyboardAvoidingView, useful for forms with text inputs. Default false. */
+  keyboardAvoiding?: boolean;
 };
 
 /** Methods children can call via a ref to trigger the animated close. */
@@ -46,13 +52,36 @@ const ModalComponent = forwardRef<ModalHandle, ModalProps>(
       maxHeight = "85%",
       closeOnBackdropPress = true,
       openDuration = 300,
-      closeDuration = 200,
-      contentStyle
+      closeDuration = 250,
+      contentStyle,
+      keyboardAvoiding = false,
     },
     ref
   ) {
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+
+  // KeyboardAvoidingView doesn't work on Android inside RN's <Modal>, because
+  // the Modal renders in a separate native Dialog window that doesn't get
+  // resize events the way the main Activity window does. So on Android we
+  // track the keyboard ourselves and apply the offset manually.
+  const [androidKeyboardHeight, setAndroidKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    if (Platform.OS !== "android" || !keyboardAvoiding) return;
+
+    const showSub = Keyboard.addListener("keyboardDidShow", (e) => {
+      setAndroidKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
+      setAndroidKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [keyboardAvoiding]);
 
   useEffect(() => {
     if (visible) {
@@ -95,6 +124,25 @@ const ModalComponent = forwardRef<ModalHandle, ModalProps>(
     close: handleClose,
   }));
 
+  const sheetContent = (
+    <View
+      style={[
+        styles.modalContent,
+        { maxHeight },
+        Platform.OS === "android" && keyboardAvoiding
+          ? { marginBottom: androidKeyboardHeight }
+          : null,
+        contentStyle,
+      ]}
+    >
+      <View style={styles.dragHandleContainer}>
+        <View style={styles.dragHandle} />
+      </View>
+
+      {children}
+    </View>
+  );
+
   return (
     <Modal
       animationType="none"
@@ -120,15 +168,16 @@ const ModalComponent = forwardRef<ModalHandle, ModalProps>(
         ]}
         pointerEvents="box-none"
       >
-        <View
-          style={[styles.modalContent, { maxHeight }, contentStyle]}
-        >
-          <View style={styles.dragHandleContainer}>
-            <View style={styles.dragHandle} />
-          </View>
-
-          {children}
-        </View>
+        {keyboardAvoiding ? (
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.keyboardWrap}
+          >
+            {sheetContent}
+          </KeyboardAvoidingView>
+        ) : (
+          sheetContent
+        )}
       </Animated.View>
     </Modal>
   );
@@ -150,6 +199,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     zIndex: 2,
+  },
+  keyboardWrap: {
+    width: "100%",
   },
   modalContent: {
     backgroundColor: "#FFFFFF",
