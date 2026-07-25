@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-    gap: 8,
+    gap: 16,
   },
   title: {
     fontSize: 18,
