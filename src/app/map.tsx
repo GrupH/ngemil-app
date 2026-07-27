@@ -5,12 +5,19 @@ import { useLocation } from "@/hooks/useLocation";
 import Mapbox from "@rnmapbox/maps";
 import { router } from "expo-router";
 import { Search } from "lucide-react-native";
+import { useEffect, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
 export default function MapPage() {
-  const { coords } = useLocation();
+  const { fullName: locationName, coords } = useLocation();
+
+  const[currLocation, setCurrLocation] = useState<string>(locationName)
+
+  useEffect(() => {
+    setCurrLocation(locationName)
+  }, [locationName])
 
   return (
     <View style={styles.page}>
@@ -26,7 +33,7 @@ export default function MapPage() {
         />
         <View style={styles.inputContainer}>
           <Search color="#949FF1" size={20} />
-          <TextInput placeholderTextColor="#CBC6C6" style={styles.input} />
+          <TextInput placeholderTextColor="#CBC6C6" style={styles.input} value={currLocation}/>
         </View>
       </View>
 
@@ -41,7 +48,7 @@ export default function MapPage() {
           <Mapbox.Camera
             zoomLevel={16}
             centerCoordinate={
-              coords ? [coords.longitude, coords.latitude] : [106.8272, -6.1751]
+              coords ? [coords.longitude, coords.latitude] : [106.8272, -6.1751] // TODO: decide what happens when no coords
             }
             animationMode="flyTo"
             animationDuration={2000}

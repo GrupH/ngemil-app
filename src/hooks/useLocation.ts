@@ -7,6 +7,7 @@ export interface LocationState {
     longitude: number;
   } | null;
   name: string;
+  fullName: string;
   loading: boolean;
   error: string | null;
 }
@@ -15,6 +16,7 @@ export function useLocation() {
   const [state, setState] = useState<LocationState>({
     coords: null,
     name: "Searching...",
+    fullName: "Searching Location...",
     loading: true,
     error: null,
   });
@@ -29,6 +31,7 @@ export function useLocation() {
           setState({
             coords: null,
             name: "Permission to access location was denied",
+            fullName: "Permission to access location was denied",
             loading: false,
             error: "Permission to access location was denied",
           });
@@ -48,7 +51,7 @@ export function useLocation() {
               longitude: userLoc.coords.longitude,
             };
 
-            let name = "Active Location";
+            let name = "Active Location", fullName = "Active Location";
             // Try to reverse geocode the updated coordinates
             try {
               const geocode = await Location.reverseGeocodeAsync(currentCoords);
@@ -60,6 +63,8 @@ export function useLocation() {
                   addr.city ||
                   addr.subregion ||
                   "Active Location";
+                
+                fullName = `${addr.district || addr.street}, ${addr.city}`
               }
             } catch (e) {
               console.warn("Failed to reverse geocode location:", e);
@@ -68,6 +73,7 @@ export function useLocation() {
             setState({
               coords: currentCoords,
               name,
+              fullName,
               loading: false,
               error: null,
             });
@@ -76,7 +82,8 @@ export function useLocation() {
       } catch (err: any) {
         setState({
           coords: null,
-          name: "Jakarta",
+          name: "",
+          fullName: "",
           loading: false,
           error: err.message || "Failed to start location tracking",
         });
