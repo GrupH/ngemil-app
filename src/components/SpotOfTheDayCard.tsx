@@ -24,10 +24,13 @@ export default function SpotOfTheDayCard({
 
         {/* Floating Stats Pill */}
         <View style={styles.statsPill}>
-          <Star color="#949FF1" fill="#949FF1" size={14} />
-          <Text style={styles.statsText}>{rating.toFixed(1)}</Text>
-
-          <Text style={styles.bullet}>•</Text>
+          {rating > -1 &&
+          <>
+            <Star color="#949FF1" fill="#949FF1" size={14} />
+            <Text style={styles.statsText}>{rating.toFixed(1)}</Text>
+            <Text style={styles.bullet}>•</Text>
+          </>
+          }
 
           <View style={styles.iconContainer}>
             <MapPin color="#949FF1" fill="#949FF1" size={14} />

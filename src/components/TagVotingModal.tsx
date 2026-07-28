@@ -125,7 +125,7 @@ export default function TagVotingModal({
       modalRef.current?.close();
     } catch (err) {
       console.error("Failed to submit tag votes:", err);
-      //TODO: toast for success
+      //TODO: toast for success/error
     } finally {
       setIsSubmitting(false);
     }

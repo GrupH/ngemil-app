@@ -354,7 +354,8 @@ const App = () => {
   };
 
   function parseLocationData(location: NearbyLocations): PlaceData {
-    const distanceKm = location.distance_m
+    const distanceKm =
+    location.distance_m != null
       ? `${(location.distance_m / 1000).toFixed(1)} km`
       : "err";
 

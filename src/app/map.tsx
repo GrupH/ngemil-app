@@ -1,23 +1,34 @@
+import AddLocationModal from "@/components/AddLocationModal";
 import BackButton from "@/components/BackButton";
 import { mapStyle } from "@/constants/mapStyle";
 import { colours } from "@/constants/style";
 import { useLocation } from "@/hooks/useLocation";
+import { CoordsType } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
 import { router } from "expo-router";
-import { Search } from "lucide-react-native";
+import { Plus, Search } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
 export default function MapPage() {
   const { fullName: locationName, coords } = useLocation();
 
-  const[currLocation, setCurrLocation] = useState<string>(locationName)
+  const [currLocation, setCurrLocation] = useState<string>(locationName)
+  const [currCoords, setCurrCoords] = useState<CoordsType | null>(coords)
+  // TODO: zustand both locationname and coords for changing location from current location
+
+  const [modalVisible, setModalVisible] = useState<boolean>(false)
 
   useEffect(() => {
     setCurrLocation(locationName)
-  }, [locationName])
+    setCurrCoords(coords)
+  }, [locationName, coords])
+
+  function setAddLocationModalVisible(visible: boolean) {
+    setModalVisible(visible);
+  }
 
   return (
     <View style={styles.page}>
@@ -36,6 +47,14 @@ export default function MapPage() {
           <TextInput placeholderTextColor="#CBC6C6" style={styles.input} value={currLocation}/>
         </View>
       </View>
+      
+      <View style={styles.addLocationContainer}>
+        <Pressable style={styles.addLocationIconCircle} onPress={() => setAddLocationModalVisible(true)}>
+          <Plus color={colours.secondary_bg} size={28} strokeWidth={2} />
+        </Pressable>
+      </View>
+      
+      <AddLocationModal modalVisible={modalVisible} setModalVisible={setAddLocationModalVisible} coords={currCoords}/>
 
       <View style={styles.container}>
         <Mapbox.MapView
@@ -55,7 +74,7 @@ export default function MapPage() {
           />
           {coords && <Mapbox.UserLocation visible={true} />}
         </Mapbox.MapView>
-      </View>
+      </View>      
     </View>
   );
 }
@@ -96,5 +115,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colours.text_primary,
     flex: 1,
+  },
+  addLocationContainer:{
+    position: "absolute",
+    padding: 24,
+    bottom: 0,
+    right: 0,
+    zIndex: 10,
+  },
+  addLocationIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 99,
+    backgroundColor: colours.accent_1,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

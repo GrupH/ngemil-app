@@ -1,5 +1,6 @@
 import { mapStyle } from "@/constants/mapStyle";
 import { colours } from "@/constants/style";
+import { CoordsType } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
 import { useRouter } from "expo-router";
 import { Expand } from "lucide-react-native";
@@ -7,10 +8,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 export default function MapPreview({
   coords,
 }: {
-  coords: {
-    latitude: number;
-    longitude: number;
-  } | null;
+  coords: CoordsType | null;
 }) {
   const router = useRouter();
 

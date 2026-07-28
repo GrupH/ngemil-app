@@ -1,11 +1,9 @@
+import { CoordsType } from "@/types/types";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
 
 export interface LocationState {
-  coords: {
-    latitude: number;
-    longitude: number;
-  } | null;
+  coords: CoordsType | null;
   name: string;
   fullName: string;
   loading: boolean;

@@ -1,3 +1,8 @@
+export type CoordsType = {
+  latitude: number;
+  longitude: number;
+}
+
 export type SpotProps = {
   imageUrl: string;
   title: string;

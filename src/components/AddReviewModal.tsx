@@ -26,14 +26,12 @@ const RATING_LABELS: Record<number, string> = {
 type RatingReviewModalProps = {
   modalVisible: boolean;
   setModalVisible: (visible: boolean) => void;
-  placeName?: string;
   onSubmit?: (rating: number, review: string) => void;
 };
 
 export default function RatingReviewModal({
   modalVisible,
   setModalVisible,
-  placeName,
   onSubmit,
 }: RatingReviewModalProps) {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -100,11 +98,7 @@ export default function RatingReviewModal({
       keyboardAvoiding
     >
       <Text style={styles.placeTitle}>Add Your Review</Text>
-      <Text style={styles.infoTextMuted}>
-        {placeName
-          ? `Share your experience at ${placeName}`
-          : "Share your experience with this spot"}
-      </Text>
+      <Text style={styles.infoTextMuted}>Share your experience with this spot</Text>
 
       <View style={styles.starRow}>
         {[1, 2, 3, 4, 5].map((value) => {
