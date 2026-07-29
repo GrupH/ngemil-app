@@ -20,7 +20,8 @@ export default function NearbySpotCard({
     >
       {/* Top Image Section */}
       <View style={styles.imageContainer}>
-        <Image source={{ uri: imageUrl }} style={styles.image} />
+        {/* TODO: CHANGE PLACEHOLDER */}
+        <Image source={{ uri: imageUrl === "" ? "https://placehold.net/400x400.png" : imageUrl }} style={styles.image} />
 
         {/* Floating Stats Pill */}
         <View style={styles.statsPill}>
