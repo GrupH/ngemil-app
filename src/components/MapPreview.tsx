@@ -1,4 +1,3 @@
-import { mapStyle } from "@/constants/mapStyle";
 import { colours } from "@/constants/style";
 import { CoordsType } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
@@ -16,7 +15,7 @@ export default function MapPreview({
     <View style={styles.mapCard}>
       <Mapbox.MapView
         style={StyleSheet.absoluteFill}
-        styleURL={JSON.stringify(mapStyle)}
+        styleURL={'mapbox://styles/qrome/cms5onyxy000r01rd2e5w8fas'}
         zoomEnabled={false}
         scrollEnabled={false}
         pitchEnabled={false}

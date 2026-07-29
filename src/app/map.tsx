@@ -1,6 +1,5 @@
 import AddLocationModal from "@/components/AddLocationModal";
 import BackButton from "@/components/BackButton";
-import { mapStyle } from "@/constants/mapStyle";
 import { colours } from "@/constants/style";
 import { useLocation } from "@/hooks/useLocation";
 import { CoordsType } from "@/types/types";
@@ -59,7 +58,7 @@ export default function MapPage() {
       <View style={styles.container}>
         <Mapbox.MapView
           style={styles.map}
-          styleURL={JSON.stringify(mapStyle)}
+          styleURL={'mapbox://styles/qrome/cms5onyxy000r01rd2e5w8fas'}
           scaleBarEnabled={false}
           logoEnabled={false}
           attributionEnabled={false}
