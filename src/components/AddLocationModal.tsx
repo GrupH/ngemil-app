@@ -2,14 +2,16 @@ import { colours } from "@/constants/style";
 import { submitLocation } from "@/lib/locations";
 import { CoordsType } from "@/types/types";
 import { useQueryClient } from "@tanstack/react-query";
+import { LocateFixed } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
+import EditLocationMap from "./EditLocationMap";
 import ModalComponent, { type ModalHandle } from "./ModalComponent";
 
 const MAX_DESCRIPTION_LENGTH = 250;
@@ -47,6 +49,8 @@ export default function AddLocationModal({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const [pickerVisible, setPickerVisible] = useState(false);
 
   useEffect(() => {
     if(coords && coords.latitude && coords.longitude){
@@ -131,6 +135,33 @@ export default function AddLocationModal({
           />
         </View>
       </View>
+
+      <View style={styles.fieldGroup}>
+        <Text style={styles.fieldLabel}>Exact Location</Text>
+        <Pressable
+          style={styles.locationPickerButton}
+          onPress={() => setPickerVisible(true)}
+        >
+          <LocateFixed color={colours.accent_1} size={18} />
+          <Text style={styles.locationPickerText}>
+            {newLocationDetails.latitude && newLocationDetails.longitude
+              ? `${newLocationDetails.latitude.toFixed(5)}, ${newLocationDetails.longitude.toFixed(5)}`
+              : "Adjust pin on map"}
+          </Text>
+        </Pressable>
+      </View>
+
+      <EditLocationMap
+        visible={pickerVisible}
+        initialCoords={{
+          latitude: newLocationDetails.latitude || coords?.latitude || 0,
+          longitude: newLocationDetails.longitude || coords?.longitude || 0,
+        }}
+        onClose={() => setPickerVisible(false)}
+        onConfirm={(newCoords) =>
+          setLocationDetails((prev) => ({ ...prev, ...newCoords }))
+        }
+      />
 
       <View style={styles.fieldGroup}>
         <Text style={styles.fieldLabel}>Description</Text>
@@ -256,5 +287,20 @@ const styles = StyleSheet.create({
   buttonDisabledText: {
     color: colours.border_2,
     opacity: 0.5
-  }
+  },
+  locationPickerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: colours.border_1,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  locationPickerText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: colours.text_primary,
+  },
 });
