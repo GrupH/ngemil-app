@@ -1,5 +1,6 @@
 import { colours } from "@/constants/style";
 import { submitLocation } from "@/lib/locations";
+import { submitPhotos } from "@/lib/photos";
 import { CoordsType } from "@/types/types";
 import { useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
@@ -78,7 +79,7 @@ export default function AddLocationModal({
 
     setIsSubmitting(true)
     try{
-        const { error } = await submitLocation(
+        const { data, error } = await submitLocation(
             newLocationDetails.name,
             newLocationDetails.address,
             newLocationDetails.description,
@@ -88,16 +89,36 @@ export default function AddLocationModal({
 
         if (error) throw error;
 
-        queryClient.invalidateQueries({ queryKey: ["nearbyLocations", coords?.latitude, coords?.longitude] });
+        const locationId = data?.id;
 
-        setLocationDetails(defaultLocationDetails)
-        setPhotos([])
-        modalRef.current?.close();
+        if (photos.length > 0) {
+          const photoResults = await Promise.allSettled(
+            photos.map((uri) =>
+              submitPhotos(uri, locationId)
+            )
+          );
+
+          const failedCount = photoResults.filter(
+            (r) => r.status === "rejected" || (r.status === "fulfilled" && r.value.error)
+          ).length;
+
+          if (failedCount > 0) {
+            console.error(`${failedCount} of ${photos.length} photos failed to upload`);
+            // TODO: toast — location saved, but some photos failed
+          }
+        }
+
+        queryClient.invalidateQueries({ queryKey: ["nearbyLocations", coords?.latitude, coords?.longitude] });
+        queryClient.invalidateQueries({ queryKey: ["locationById", locationId] });
+
     } catch(err){
         console.error("Failed to submit new location:", err);
         setSubmitError("Couldn't submit new location. Please try again.");
     } finally {
         setIsSubmitting(false);
+        setLocationDetails(defaultLocationDetails)
+        setPhotos([])
+        modalRef.current?.close();
     }
 
   }
@@ -112,49 +133,49 @@ export default function AddLocationModal({
 
   // PHOTOS
   async function handlePickFromGallery() {
-  if (photos.length >= MAX_PHOTOS) return;
+    if (photos.length >= MAX_PHOTOS) return;
 
-  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (status !== "granted") {
-    console.log("Gallery permission denied"); // TODO: toast
-    return;
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      console.log("Gallery permission denied"); // TODO: toast
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7, // lower it if need to save supabase storage
+      allowsMultipleSelection: true,
+      selectionLimit: MAX_PHOTOS - photos.length,
+    });
+
+    if (!result.canceled) {
+      const newUris = result.assets.map((asset) => asset.uri);
+      setPhotos((prev) => [...prev, ...newUris].slice(0, MAX_PHOTOS));
+    }
   }
 
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    quality: 0.7, // lower it if need to save supabase storage
-    allowsMultipleSelection: true,
-    selectionLimit: MAX_PHOTOS - photos.length,
-  });
+  async function handleTakePhoto() {
+    if (photos.length >= MAX_PHOTOS) return;
 
-  if (!result.canceled) {
-    const newUris = result.assets.map((asset) => asset.uri);
-    setPhotos((prev) => [...prev, ...newUris].slice(0, MAX_PHOTOS));
-  }
-}
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      console.log("Camera permission denied"); // TODO: toast
+      return;
+    }
 
-async function handleTakePhoto() {
-  if (photos.length >= MAX_PHOTOS) return;
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.7,
+    });
 
-  const { status } = await ImagePicker.requestCameraPermissionsAsync();
-  if (status !== "granted") {
-    console.log("Camera permission denied"); // TODO: toast
-    return;
+    if (!result.canceled) {
+      const newUri = result.assets[0].uri;
+      setPhotos((prev) => [...prev, newUri].slice(0, MAX_PHOTOS));
+    }
   }
 
-  const result = await ImagePicker.launchCameraAsync({
-    quality: 0.7,
-  });
-
-  if (!result.canceled) {
-    const newUri = result.assets[0].uri;
-    setPhotos((prev) => [...prev, newUri].slice(0, MAX_PHOTOS));
+  function handleRemovePhoto(uriToRemove: string) {
+    setPhotos((prev) => prev.filter((uri) => uri !== uriToRemove));
   }
-}
-
-function handleRemovePhoto(uriToRemove: string) {
-  setPhotos((prev) => prev.filter((uri) => uri !== uriToRemove));
-}
 
   return (
     <ModalComponent

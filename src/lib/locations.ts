@@ -57,5 +57,7 @@ export async function submitLocation(
     description,
     submitted_by: user?.id,
     coordinates: `POINT(${lng} ${lat})`,
-  });
+  })
+  .select()
+  .single();
 }
