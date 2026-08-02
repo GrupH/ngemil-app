@@ -71,6 +71,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 10,
     elevation: 3,
+    flex:1
   },
   pressedCard: {
     opacity: 0.95,

@@ -44,13 +44,15 @@ export default function PlaceDetailModal({
 
         {/* Info Row - Rating and Distance */}
         <View style={styles.infoRow}>
+          {place.rating > -1 && 
           <View style={styles.infoItem}>
             <Star color="#949FF1" fill="#949FF1" size={16} />
             <Text style={styles.infoTextBold}>{place.rating.toFixed(1)}</Text>
             <Text style={styles.infoTextMuted}>
-              ({reviews.length} reviews)
+              ({reviews.length} Review{reviews.length > 1 && 's'})
             </Text>
           </View>
+          }
           <View style={styles.infoItem}>
             <MapPin color="#fff" fill="#949FF1" size={16} />
             <Text style={styles.infoTextBold}>{place.distance}</Text>

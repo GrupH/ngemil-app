@@ -12,7 +12,7 @@ import { getLocationById } from "@/lib/locations";
 import type { LocationByID, PlaceData } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { MapPin, Star } from "lucide-react-native";
+import { Star } from "lucide-react-native";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -129,16 +129,20 @@ export default function PlaceDetailPage() {
 
           {/* Info Row - Rating and Distance */}
           <View style={styles.infoRow}>
+            {locationData?.rating && locationData?.rating > -1 &&
             <View style={styles.infoItem}>
               <Star color="#949FF1" fill="#949FF1" size={16} />
               <Text style={styles.infoTextBold}>
                 {locationData?.rating.toFixed(1)}
               </Text>
             </View>
-            <View style={styles.infoItem}>
+            }
+
+            {/* TO BE IMPLEMENTED */}
+            {/* <View style={styles.infoItem}>
               <MapPin color="#fff" fill="#949FF1" size={16} />
               <Text style={styles.infoTextBold}>{locationData?.distance}</Text>
-            </View>
+            </View> */}
           </View>
 
           {/* Description */}
