@@ -3,6 +3,7 @@ import { colours } from "@/constants/style";
 import { SpotProps } from "@/types/types";
 import { MapPin, Star } from "lucide-react-native";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import ImagePlaceholder from "./ImagePlaceholder";
 
 export default function NearbySpotCard({
   imageUrl,
@@ -20,8 +21,10 @@ export default function NearbySpotCard({
     >
       {/* Top Image Section */}
       <View style={styles.imageContainer}>
-        {/* TODO: CHANGE PLACEHOLDER */}
-        <Image source={{ uri: imageUrl === "" ? "https://placehold.net/400x400.png" : imageUrl }} style={styles.image} />
+        {imageUrl === "" ? 
+          <ImagePlaceholder style={styles.image}/>:
+          <Image source={{ uri:  imageUrl }} style={styles.image} />
+        }
 
         {/* Floating Stats Pill */}
         <View style={styles.statsPill}>
