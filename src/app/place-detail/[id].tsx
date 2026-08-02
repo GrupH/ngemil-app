@@ -106,6 +106,7 @@ export default function PlaceDetailPage() {
       >
         <View style={styles.headerContainer}>
           <BackButton
+            type="Back"
             onPress={() => {
               if (router.canGoBack()) {
                 router.back();

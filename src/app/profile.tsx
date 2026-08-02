@@ -22,7 +22,7 @@ export default function ProfilePage() {
     <SafeAreaView style={styles.page}>
       <View style={styles.container}>
         <View style={styles.topSection}>
-          <BackButton onPress={handleBack} />
+          <BackButton onPress={handleBack} type="Back"/>
           <View style={styles.content}>
             <Text style={styles.title}>Akun Saya</Text>
             {user ? (

@@ -78,6 +78,7 @@ export default function AuthScreen() {
         <View style={styles.content}>
           <View style={{ marginBottom: 24 }}>
             <BackButton
+              type="Back"
               onPress={() => {
                 if (router.canGoBack()) {
                   router.back();

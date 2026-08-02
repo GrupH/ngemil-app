@@ -11,7 +11,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import EditLocationMap from "./EditLocationMap";
 import ModalComponent, { type ModalHandle } from "./ModalComponent";
 
 const MAX_DESCRIPTION_LENGTH = 250;
@@ -19,7 +18,8 @@ const MAX_DESCRIPTION_LENGTH = 250;
 type AddLocationModalProps = {
   modalVisible: boolean;
   setModalVisible: (visible: boolean) => void;
-  coords: CoordsType | null
+  coords: CoordsType | null;
+  onRequestPickLocation: (startCoords: CoordsType) => void; // NEW
 };
 
 type LocationDetailType = {
@@ -31,6 +31,7 @@ type LocationDetailType = {
 export default function AddLocationModal({
   modalVisible,
   setModalVisible,
+  onRequestPickLocation,
   coords
 }: AddLocationModalProps) {
   const modalRef = useRef<ModalHandle>(null);
@@ -93,6 +94,13 @@ export default function AddLocationModal({
 
   }
 
+  function handleAdjustLocation() {
+    onRequestPickLocation({
+      latitude: newLocationDetails.latitude || coords?.latitude || 0,
+      longitude: newLocationDetails.longitude || coords?.longitude || 0,
+    });
+  }
+
   return (
     <ModalComponent
       ref={modalRef}
@@ -138,10 +146,7 @@ export default function AddLocationModal({
 
       <View style={styles.fieldGroup}>
         <Text style={styles.fieldLabel}>Exact Location</Text>
-        <Pressable
-          style={styles.locationPickerButton}
-          onPress={() => setPickerVisible(true)}
-        >
+        <Pressable style={styles.locationPickerButton} onPress={handleAdjustLocation}>
           <LocateFixed color={colours.accent_1} size={18} />
           <Text style={styles.locationPickerText}>
             {newLocationDetails.latitude && newLocationDetails.longitude
@@ -150,18 +155,6 @@ export default function AddLocationModal({
           </Text>
         </Pressable>
       </View>
-
-      <EditLocationMap
-        visible={pickerVisible}
-        initialCoords={{
-          latitude: newLocationDetails.latitude || coords?.latitude || 0,
-          longitude: newLocationDetails.longitude || coords?.longitude || 0,
-        }}
-        onClose={() => setPickerVisible(false)}
-        onConfirm={(newCoords) =>
-          setLocationDetails((prev) => ({ ...prev, ...newCoords }))
-        }
-      />
 
       <View style={styles.fieldGroup}>
         <Text style={styles.fieldLabel}>Description</Text>

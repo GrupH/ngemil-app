@@ -5,9 +5,9 @@ import { useLocation } from "@/hooks/useLocation";
 import { CoordsType } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
 import { router } from "expo-router";
-import { Plus, Search } from "lucide-react-native";
+import { MapPin, Plus, Search } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
@@ -16,44 +16,80 @@ export default function MapPage() {
 
   const [currLocation, setCurrLocation] = useState<string>(locationName)
   const [currCoords, setCurrCoords] = useState<CoordsType | null>(coords)
-  // TODO: zustand both locationname and coords for changing location from current location
-
   const [modalVisible, setModalVisible] = useState<boolean>(false)
+
+  // NEW: picking mode state
+  const [isPickingLocation, setIsPickingLocation] = useState(false);
+  const [pickerCenter, setPickerCenter] = useState<CoordsType | null>(null);
 
   useEffect(() => {
     setCurrLocation(locationName)
     setCurrCoords(coords)
   }, [locationName, coords])
 
-  function setAddLocationModalVisible(visible: boolean) {
-    setModalVisible(visible);
+  function handleStartPicking(startCoords: CoordsType) {
+    setPickerCenter(startCoords);
+    setModalVisible(false);      // hide modal, reveal map underneath
+    setIsPickingLocation(true);
+  }
+
+  function handleCameraChanged(state: Mapbox.MapState) {
+    if (!isPickingLocation) return;
+    const [longitude, latitude] = state.properties.center;
+    setPickerCenter({ latitude, longitude });
+  }
+
+  function handleConfirmPick() {
+    setIsPickingLocation(false);
+    setModalVisible(true);       // pickerCenter gets passed back in as coords
+  }
+
+  function handleCancelPick() {
+    setIsPickingLocation(false);
+    setModalVisible(true);
   }
 
   return (
     <View style={styles.page}>
-      <View style={styles.headerContainer}>
-        <BackButton
-          onPress={() => {
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/");
-            }
-          }}
-        />
-        <View style={styles.inputContainer}>
-          <Search color="#949FF1" size={20} />
-          <TextInput placeholderTextColor="#CBC6C6" style={styles.input} value={currLocation}/>
+      {!isPickingLocation && (
+        <View style={styles.headerContainer}>
+          <BackButton onPress={() => router.canGoBack() ? router.back() : router.replace("/")} type="Back"/>
+          <View style={styles.inputContainer}>
+            <Search color="#949FF1" size={20} />
+            <TextInput placeholderTextColor="#CBC6C6" style={styles.input} value={currLocation}/>
+          </View>
         </View>
-      </View>
-      
-      <View style={styles.addLocationContainer}>
-        <Pressable style={styles.addLocationIconCircle} onPress={() => setAddLocationModalVisible(true)}>
-          <Plus color={colours.secondary_bg} size={28} strokeWidth={2} />
-        </Pressable>
-      </View>
-      
-      <AddLocationModal modalVisible={modalVisible} setModalVisible={setAddLocationModalVisible} coords={currCoords}/>
+      )}
+
+      {!isPickingLocation && (
+        <View style={styles.addLocationContainer}>
+          <Pressable style={styles.addLocationIconCircle} onPress={() => setModalVisible(true)}>
+            <Plus color={colours.secondary_bg} size={28} strokeWidth={2} />
+          </Pressable>
+        </View>
+      )}
+
+      <AddLocationModal
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        coords={pickerCenter ?? currCoords}
+        onRequestPickLocation={handleStartPicking}
+      />
+
+      {/* Picking-mode UI, overlaid on the SAME map */}
+      {isPickingLocation && (
+        <>
+          <BackButton onPress={handleCancelPick} style={styles.pickerBackButton} type="Close"/>
+          <View style={styles.pinContainer} pointerEvents="none">
+            <MapPin color={colours.accent_1} size={40} fill={colours.accent_1} />
+          </View>
+          <View style={styles.pickerFooter}>
+            <Pressable style={styles.pickerConfirmButton} onPress={handleConfirmPick}>
+              <Text style={styles.pickerConfirmText}>Confirm Location</Text>
+            </Pressable>
+          </View>
+        </>
+      )}
 
       <View style={styles.container}>
         <Mapbox.MapView
@@ -62,16 +98,19 @@ export default function MapPage() {
           scaleBarEnabled={false}
           logoEnabled={false}
           attributionEnabled={false}
+          onCameraChanged={handleCameraChanged}
         >
           <Mapbox.Camera
-            zoomLevel={16}
+            zoomLevel={isPickingLocation ? 18 : 16}
             centerCoordinate={
-              coords ? [coords.longitude, coords.latitude] : [106.8272, -6.1751] // TODO: decide what happens when no coords
+              isPickingLocation && pickerCenter
+                ? [pickerCenter.longitude, pickerCenter.latitude]
+                : coords ? [coords.longitude, coords.latitude] : [106.8272, -6.1751]
             }
             animationMode="flyTo"
-            animationDuration={2000}
+            animationDuration={isPickingLocation ? 300 : 500}
           />
-          {coords && <Mapbox.UserLocation visible={true} />}
+          {coords && !isPickingLocation && <Mapbox.UserLocation visible={true} />}
         </Mapbox.MapView>
       </View>      
     </View>
@@ -130,4 +169,39 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  pinContainer: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    marginLeft: -20,
+    marginTop: -40,
+    zIndex: 10,
+  },
+  pickerFooter: {
+    position: "absolute",
+    padding: 24,
+    bottom: 0,
+    width: "100%",
+    flexDirection: "row",
+    gap: 12,
+    zIndex: 10,
+  },
+  pickerConfirmButton: {
+    flex: 2,
+    backgroundColor: colours.accent_1,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  pickerConfirmText: { 
+    color: colours.secondary_bg, 
+    fontWeight: "700", 
+    fontSize: 15 
+  },
+  pickerBackButton:{
+    position: "absolute",
+    zIndex: 10,
+    top: 24,
+    left: 24,
+  }
 });

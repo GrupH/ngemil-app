@@ -1,18 +1,21 @@
 import { colours } from "@/constants/style";
-import { ArrowLeft } from "lucide-react-native";
-import { Pressable, StyleSheet } from "react-native";
+import { ArrowLeft, X } from "lucide-react-native";
+import { Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
 
 type BackButtonProps = {
   onPress: () => void;
+  style?: StyleProp<ViewStyle>
+  type: "Close" | "Back"
 };
 
-export default function BackButton({ onPress }: BackButtonProps) {
+export default function BackButton({ onPress, style, type }: BackButtonProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.button, pressed && styles.pressed, style]}
     >
-      <ArrowLeft color={colours.accent_1} size={22} strokeWidth={2.5} />
+      {type === "Back" && <ArrowLeft color={colours.accent_1} size={22} strokeWidth={2.5} />}
+      {type === "Close" && <X color={colours.accent_1} size={22} strokeWidth={2.5} />}
     </Pressable>
   );
 }
