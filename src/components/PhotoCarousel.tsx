@@ -26,7 +26,8 @@ export default function PhotoCarousel({ photos }: PhotoCarouselProps) {
           key={index}
           style={[styles.carouselPhotoContainer, { width: photoWidth }]}
         >
-          <Image source={{ uri: photo }} style={styles.photo} />
+          {/* TODO: CHANGE PLACEHOLDER */}
+          <Image source={{ uri: photo ? photo : "https://placehold.net/600x400.png"}} style={styles.photo} />
         </View>
       ))}
     </ScrollView>

@@ -48,7 +48,7 @@ export default function PlaceDetailPage() {
       id: location.id,
       imageUrl: "",
       title: location.name,
-      rating: location.location_rating_summary[0].avg_rating ?? -1,
+      rating: location.location_rating_summary[0]?.avg_rating ?? -1,
       distance: "0 km",
       tags: location.location_tag_vote_summary.map((item) => {
         return {

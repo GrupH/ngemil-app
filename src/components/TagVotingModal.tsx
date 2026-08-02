@@ -1,4 +1,5 @@
 import { colours } from "@/constants/style";
+import { useLocation } from "@/hooks/useLocation";
 import { getAllTags, getUserTagVotesForLocation, unvoteTag, voteTag } from "@/lib/tags";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
@@ -33,6 +34,7 @@ export default function TagVotingModal({
 
   const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { coords } = useLocation()
 
   const { data: allTags, isLoading} = useQuery({
     queryKey: ["allTags"],
@@ -120,6 +122,7 @@ export default function TagVotingModal({
       const failed = results.find((r) => r.error);
       if (failed) throw failed.error;
 
+      queryClient.invalidateQueries({ queryKey: ["nearbyLocations", coords?.latitude, coords?.longitude] });
       queryClient.invalidateQueries({ queryKey: ["locationTags", id] });
       queryClient.invalidateQueries({ queryKey: ["locationById", id] });
       modalRef.current?.close();
