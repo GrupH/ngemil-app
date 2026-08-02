@@ -2,10 +2,13 @@ import { colours } from "@/constants/style";
 import { submitLocation } from "@/lib/locations";
 import { CoordsType } from "@/types/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { LocateFixed } from "lucide-react-native";
+import * as ImagePicker from "expo-image-picker";
+import { Camera, ImagePlus, LocateFixed, X } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
+  Image,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -14,6 +17,7 @@ import {
 import ModalComponent, { type ModalHandle } from "./ModalComponent";
 
 const MAX_DESCRIPTION_LENGTH = 250;
+const MAX_PHOTOS = 5;
 
 type AddLocationModalProps = {
   modalVisible: boolean;
@@ -53,12 +57,15 @@ export default function AddLocationModal({
 
   const [pickerVisible, setPickerVisible] = useState(false);
 
+  const [photos, setPhotos] = useState<string[]>([]);
+
   useEffect(() => {
     if(coords && coords.latitude && coords.longitude){
         setLocationDetails((prev: LocationDetailType) => ({ ...prev, latitude: coords.latitude, longitude: coords.longitude }))
     }
   }, [coords])
 
+  // SUBMIT LOCATION
   const canSubmit = (newLocationDetails.name !== "") && (newLocationDetails.address !== "") && (newLocationDetails.description !== "")
 
   async function handleSubmitLocation(){
@@ -84,6 +91,7 @@ export default function AddLocationModal({
         queryClient.invalidateQueries({ queryKey: ["nearbyLocations", coords?.latitude, coords?.longitude] });
 
         setLocationDetails(defaultLocationDetails)
+        setPhotos([])
         modalRef.current?.close();
     } catch(err){
         console.error("Failed to submit new location:", err);
@@ -94,12 +102,59 @@ export default function AddLocationModal({
 
   }
 
+  // ADJUST LOCATION
   function handleAdjustLocation() {
     onRequestPickLocation({
       latitude: newLocationDetails.latitude || coords?.latitude || 0,
       longitude: newLocationDetails.longitude || coords?.longitude || 0,
     });
   }
+
+  // PHOTOS
+  async function handlePickFromGallery() {
+  if (photos.length >= MAX_PHOTOS) return;
+
+  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (status !== "granted") {
+    console.log("Gallery permission denied"); // TODO: toast
+    return;
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    quality: 0.7, // lower it if need to save supabase storage
+    allowsMultipleSelection: true,
+    selectionLimit: MAX_PHOTOS - photos.length,
+  });
+
+  if (!result.canceled) {
+    const newUris = result.assets.map((asset) => asset.uri);
+    setPhotos((prev) => [...prev, ...newUris].slice(0, MAX_PHOTOS));
+  }
+}
+
+async function handleTakePhoto() {
+  if (photos.length >= MAX_PHOTOS) return;
+
+  const { status } = await ImagePicker.requestCameraPermissionsAsync();
+  if (status !== "granted") {
+    console.log("Camera permission denied"); // TODO: toast
+    return;
+  }
+
+  const result = await ImagePicker.launchCameraAsync({
+    quality: 0.7,
+  });
+
+  if (!result.canceled) {
+    const newUri = result.assets[0].uri;
+    setPhotos((prev) => [...prev, newUri].slice(0, MAX_PHOTOS));
+  }
+}
+
+function handleRemovePhoto(uriToRemove: string) {
+  setPhotos((prev) => prev.filter((uri) => uri !== uriToRemove));
+}
 
   return (
     <ModalComponent
@@ -175,6 +230,41 @@ export default function AddLocationModal({
             {newLocationDetails.description.length}/{MAX_DESCRIPTION_LENGTH}
           </Text>
         </View>
+      </View>
+
+      <View style={styles.fieldGroup}>
+        <View style={styles.photoHeaderRow}>
+          <Text style={styles.fieldLabel}>Add Place Photos</Text>
+          <Text style={styles.photoCount}>
+            {photos.length}/{MAX_PHOTOS}
+          </Text>
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
+          {photos.map((uri) => (
+            <View key={uri} style={styles.photoThumbWrapper}>
+              <Image source={{ uri }} style={styles.photoThumb} />
+              <Pressable
+                style={styles.photoRemoveButton}
+                onPress={() => handleRemovePhoto(uri)}
+                hitSlop={8}
+              >
+                <X color={colours.secondary_bg} size={14} strokeWidth={3} />
+              </Pressable>
+            </View>
+          ))}
+
+          {photos.length < MAX_PHOTOS && (
+            <View style={styles.photoAddTile}>
+              <Pressable style={styles.photoAddButton} onPress={handleTakePhoto}>
+                <Camera color={colours.accent_1} size={20} />
+              </Pressable>
+              <Pressable style={styles.photoAddButton} onPress={handlePickFromGallery}>
+                <ImagePlus color={colours.accent_1} size={20} />
+              </Pressable>
+            </View>
+          )}
+        </ScrollView>
       </View>
 
       <View style={styles.footer}>
@@ -295,5 +385,55 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     color: colours.text_primary,
+  },
+  photoHeaderRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 8,
+  },
+  photoCount: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: colours.text_secondary,
+  },
+  photoScroll: {
+    flexDirection: "row",
+  },
+  photoThumbWrapper: {
+    marginRight: 10,
+    position: "relative",
+  },
+  photoThumb: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    backgroundColor: colours.border_1,
+  },
+  photoRemoveButton: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colours.text_primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  photoAddTile: {
+    flexDirection: "row",
+    gap: 8,
+    width: 80,
+    height: 80,
+  },
+  photoAddButton: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: colours.border_1,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderStyle: "dashed",
   },
 });
