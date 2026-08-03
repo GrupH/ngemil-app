@@ -91,8 +91,8 @@ export default function AddLocationModal({
 
         if (photos.length > 0) {
           const photoResults = await Promise.allSettled(
-            photos.map((uri) =>
-              submitPhotos(uri, locationId)
+            photos.map((uri, index) =>
+              submitPhotos(uri, locationId, index === 0)
             )
           );
 

@@ -1,6 +1,6 @@
 import { supabase } from "./supabase";
 
-export async function submitPhotos(uri: string, locationId: string) {
+export async function submitPhotos(uri: string, locationId: string, isCoverImage: boolean) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -29,5 +29,6 @@ export async function submitPhotos(uri: string, locationId: string) {
     uploaded_by: user?.id,
     storage_path: imageUrl,
     location_id: locationId,
+    is_cover: isCoverImage
   });
 }
