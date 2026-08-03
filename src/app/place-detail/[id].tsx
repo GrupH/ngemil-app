@@ -7,12 +7,13 @@ import TagsSection from "@/components/TagsSection";
 import TagVotingModal from "@/components/TagVotingModal";
 import TopMenusSection from "@/components/TopMenusSection";
 import { colours } from "@/constants/style";
+import { useNearbyLocationContext } from "@/context/NearbyLocationContext";
 import { useAuth } from "@/hooks/auth";
 import { getLocationById } from "@/lib/locations";
 import type { LocationByID, PlaceData } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Star } from "lucide-react-native";
+import { MapPin, Star } from "lucide-react-native";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,6 +22,9 @@ export default function PlaceDetailPage() {
   const { user } = useAuth()
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+
+  const { nearbyLocations } = useNearbyLocationContext()
+  const distanceToLoc = nearbyLocations.find((location) => location.id === id)?.distance
 
   const [tagModalOpen, setTagModal] = useState<boolean>(false);
   const [reviewModalOpen, setReviewModal] = useState<boolean>(false);
@@ -49,7 +53,7 @@ export default function PlaceDetailPage() {
       imageUrl: "",
       title: location.name,
       rating: location.location_rating_summary[0]?.avg_rating ?? -1,
-      distance: "0 km",
+      distance: distanceToLoc ?? "unknown",
       tags: location.location_tag_vote_summary.map((item) => {
         return {
           name: item.tags.tag,
@@ -139,10 +143,10 @@ export default function PlaceDetailPage() {
             }
 
             {/* TO BE IMPLEMENTED */}
-            {/* <View style={styles.infoItem}>
+            <View style={styles.infoItem}>
               <MapPin color="#fff" fill="#949FF1" size={16} />
               <Text style={styles.infoTextBold}>{locationData?.distance}</Text>
-            </View> */}
+            </View>
           </View>
 
           {/* Description */}

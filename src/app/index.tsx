@@ -7,11 +7,11 @@ import SearchBar from "@/components/SearchBar";
 import HomeSkeleton from "@/components/Skeleton/HomeSkeleton";
 import SpotOfTheDayCard from "@/components/SpotOfTheDayCard";
 import { colours } from "@/constants/style";
+import { useNearbyLocationContext } from "@/context/NearbyLocationContext";
 import { useLocation } from "@/hooks/useLocation";
-import { getLocationById, getNearbyLocations } from "@/lib/locations";
-import { NearbyLocations, PlaceData } from "@/types/types";
+import { getLocationById } from "@/lib/locations";
+import { PlaceData } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
-import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
@@ -79,244 +79,6 @@ const SAMPLE_SPOT = {
     },
   ],
 };
-//   {
-//     id: "2",
-//     imageUrl:
-//       "https://images.unsplash.com/photo-1541532713592-79a0317b6b77?auto=format&fit=crop&w=600&q=80",
-//     title: "The Good Bagel - Gading Serpong",
-//     rating: 4.6,
-//     distance: "1.2 km",
-//     tags: ["Bakery", "Halal", "Cafe"],
-//     description:
-//       "Bagel-shop yang menghadirkan artisan bagel, sandwich bagel, dan beverages.",
-//     photos: [
-//       "https://images.unsplash.com/photo-1541532713592-79a0317b6b77?auto=format&fit=crop&w=600&q=80",
-//       "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80",
-//       "https://images.unsplash.com/photo-1585478259715-876acc5be8eb?auto=format&fit=crop&w=600&q=80",
-//     ],
-//     reviews: [
-//       {
-//         id: "rb2_1",
-//         username: "user_bagel_lover",
-//         rating: 5,
-//         avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=bagel",
-//         comment:
-//           "Best bagels in town! Extremely soft and fresh. The cream cheese filling is perfect.",
-//       },
-//       {
-//         id: "rb2_2",
-//         username: "user_joe",
-//         rating: 4,
-//         avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=joe",
-//         comment:
-//           "Great texture on the artisan bagels. I highly recommend the breakfast sandwich bagel.",
-//       },
-//     ],
-//     menuItems: [
-//       {
-//         id: "m2_1",
-//         name: "Artisan Bagel Sandwich",
-//         price: "Rp 38.000",
-//         imageUrl:
-//           "https://images.unsplash.com/photo-1541532713592-79a0317b6b77?auto=format&fit=crop&w=300&q=80",
-//       },
-//       {
-//         id: "m2_2",
-//         name: "Soft Cream Cheese Bagel",
-//         price: "Rp 28.000",
-//         imageUrl:
-//           "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=300&q=80",
-//       },
-//       {
-//         id: "m2_3",
-//         name: "Oat Milk Iced Latte",
-//         price: "Rp 32.000",
-//         imageUrl:
-//           "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=300&q=80",
-//       },
-//     ],
-//   },
-//   {
-//     id: "3",
-//     imageUrl:
-//       "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=80",
-//     title: "Kopi Nako - Serpong",
-//     rating: 4.4,
-//     distance: "1.8 km",
-//     tags: ["Coffee", "Cafe", "Cozy"],
-//     description:
-//       "Coffee shop dengan desain industrial estetik, menyajikan es kopi nusantara dan snacks.",
-//     photos: [
-//       "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=80",
-//       "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80",
-//       "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80",
-//     ],
-//     reviews: [
-//       {
-//         id: "rb3_1",
-//         username: "coffee_guru",
-//         rating: 5,
-//         avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=coffee",
-//         comment:
-//           "Suasana sore hari di sini sangat nyaman untuk WFH. Es Kopi Nako manisnya pas!",
-//       },
-//     ],
-//     menuItems: [
-//       {
-//         id: "m3_1",
-//         name: "Es Kopi Nako",
-//         price: "Rp 23.000",
-//         imageUrl:
-//           "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=300&q=80",
-//       },
-//       {
-//         id: "m3_2",
-//         name: "Croissant Butter",
-//         price: "Rp 25.000",
-//         imageUrl:
-//           "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=300&q=80",
-//       },
-//       {
-//         id: "m3_3",
-//         name: "French Fries",
-//         price: "Rp 20.000",
-//         imageUrl:
-//           "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=300&q=80",
-//       },
-//     ],
-//   },
-//   {
-//     id: "4",
-//     imageUrl:
-//       "https://images.unsplash.com/photo-1611143669185-af224c5e3252?auto=format&fit=crop&w=600&q=80",
-//     title: "Sushi Hiro - Gading Serpong",
-//     rating: 4.8,
-//     distance: "2.1 km",
-//     tags: ["Japanese", "Sushi", "Premium"],
-//     description:
-//       "Restoran sushi autentik terkenal dengan sushi anak tangga yang artistik dan bahan segar.",
-//     photos: [
-//       "https://images.unsplash.com/photo-1611143669185-af224c5e3252?auto=format&fit=crop&w=600&q=80",
-//       "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=600&q=80",
-//       "https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?auto=format&fit=crop&w=600&q=80",
-//     ],
-//     reviews: [
-//       {
-//         id: "rb4_1",
-//         username: "sushi_lover_99",
-//         rating: 5,
-//         avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=sushi",
-//         comment:
-//           "Bahan-bahannya sangat segar dan penyajian sushinya estetik sekali. Pelayanannya top!",
-//       },
-//     ],
-//     menuItems: [
-//       {
-//         id: "m4_1",
-//         name: "Salmon Aburi Sushi",
-//         price: "Rp 40.000",
-//         imageUrl:
-//           "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=300&q=80",
-//       },
-//       {
-//         id: "m4_2",
-//         name: "Hiro Aburi Sushi Set",
-//         price: "Rp 120.000",
-//         imageUrl:
-//           "https://images.unsplash.com/photo-1611143669185-af224c5e3252?auto=format&fit=crop&w=300&q=80",
-//       },
-//       {
-//         id: "m4_3",
-//         name: "Chicken Teriyaki",
-//         price: "Rp 65.000",
-//         imageUrl:
-//           "https://images.unsplash.com/photo-1596797038530-2c107229654b?auto=format&fit=crop&w=300&q=80",
-//       },
-//     ],
-//   },
-//   {
-//     id: "5",
-//     imageUrl:
-//       "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=600&q=80",
-//     title: "Martabak Pecenongan 78",
-//     rating: 4.7,
-//     distance: "0.5 km",
-//     tags: ["Indonesian", "Sweet", "StreetFood"],
-//     description:
-//       "Legenda martabak manis dan telur premium dengan aneka topping melimpah dan adonan lembut.",
-//     photos: [
-//       "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=600&q=80",
-//       "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80",
-//     ],
-//     reviews: [
-//       {
-//         id: "rb5_1",
-//         username: "martabak_hunter",
-//         rating: 5,
-//         avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=martabak",
-//         comment:
-//           "Topping kejunya melimpah banget, wisman berasa harum harum mentega. Martabak terbaik!",
-//       },
-//     ],
-//     menuItems: [
-//       {
-//         id: "m5_1",
-//         name: "Martabak Manis Nutella Keju",
-//         price: "Rp 85.000",
-//         imageUrl:
-//           "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=300&q=80",
-//       },
-//       {
-//         id: "m5_2",
-//         name: "Martabak Telur Daging Sapi",
-//         price: "Rp 75.000",
-//         imageUrl:
-//           "https://images.unsplash.com/photo-1541532713592-79a0317b6b77?auto=format&fit=crop&w=300&q=80",
-//       },
-//     ],
-//   },
-//   {
-//     id: "6",
-//     imageUrl:
-//       "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80",
-//     title: "Gelato Divino - Mall Serpong",
-//     rating: 4.6,
-//     distance: "0.9 km",
-//     tags: ["Gelato", "Dessert", "Sweet"],
-//     description:
-//       "Gelato Italia artisan autentik dengan bahan buah-buahan segar alami dan rasa super creamy.",
-//     photos: [
-//       "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80",
-//       "https://images.unsplash.com/photo-1506084868230-bb9d95c24759?auto=format&fit=crop&w=600&q=80",
-//     ],
-//     reviews: [
-//       {
-//         id: "rb6_1",
-//         username: "dessert_queen",
-//         rating: 5,
-//         avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=gelato",
-//         comment:
-//           "Pistachio dan Dark Chocolatenya mantap! Gelatonya padat tapi super lembut di mulut.",
-//       },
-//     ],
-//     menuItems: [
-//       {
-//         id: "m6_1",
-//         name: "Double Scoop Gelato Cup",
-//         price: "Rp 45.000",
-//         imageUrl:
-//           "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=300&q=80",
-//       },
-//       {
-//         id: "m6_2",
-//         name: "Waffle Cone Gelato",
-//         price: "Rp 50.000",
-//         imageUrl:
-//           "https://images.unsplash.com/photo-1506084868230-bb9d95c24759?auto=format&fit=crop&w=300&q=80",
-//       },
-//     ],
-//   },
-// ];
 
 const App = () => {
   const [search, setSearch] = useState("");
@@ -324,9 +86,6 @@ const App = () => {
   const [selectedPlace, setSelectedPlace] = useState<PlaceData | null>(null);
   const router = useRouter();
   const { name: locationName, coords } = useLocation();
-  // Dummy Location
-  // const coords = { latitude: -6.1751, longitude: 106.8272 };
-  // const locationName = "Jonkler Street";
 
   const handleOpenPlace = async (place: PlaceData) => {
     setSelectedPlace(place);
@@ -353,47 +112,7 @@ const App = () => {
     }
   };
 
-  function parseLocationData(location: NearbyLocations): PlaceData {
-    const distanceKm =
-    location.distance_m != null
-      ? `${(location.distance_m / 1000).toFixed(1)} km`
-      : "err";
-
-    const tags = (location.tags ?? []).map((t: any) => ({
-      name: t.name,
-      count: t.count,
-    }));
-
-    return {
-      id: location.id,
-      imageUrl: location.cover_image ?? "",
-      title: location.name,
-      rating: location.avg_rating ?? -1,
-      distance: distanceKm,
-      tags,
-      description: location.description,
-      address: location.address,
-      photos: [],
-      reviews: [],
-      menuItems: [],
-    };
-  }
-
-  const { data: nearbyLocations = [], isLoading } = useQuery({
-    queryKey: ["nearbyLocations", coords?.latitude, coords?.longitude],
-    enabled: !!coords,
-    queryFn: async () => {
-      const { data, error } = await getNearbyLocations(
-        coords!.latitude,
-        coords!.longitude,
-        50000, // TODO: decide max distance
-      );
-
-      if (error) throw error;
-
-      return (data ?? []).map(parseLocationData);
-    },
-  });
+  const {nearbyLocations, isLoading} = useNearbyLocationContext()
 
   const spotOfTheDay = nearbyLocations[0] ?? SAMPLE_SPOT; // TODO
 
