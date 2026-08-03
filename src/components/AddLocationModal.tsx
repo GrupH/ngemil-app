@@ -56,8 +56,6 @@ export default function AddLocationModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const [pickerVisible, setPickerVisible] = useState(false);
-
   const [photos, setPhotos] = useState<string[]>([]);
 
   useEffect(() => {
@@ -261,6 +259,17 @@ export default function AddLocationModal({
           </Text>
         </View>
 
+        {photos.length < MAX_PHOTOS && (
+          <View style={styles.photoAddTile}>
+            <Pressable style={styles.photoAddButton} onPress={handleTakePhoto}>
+              <Camera color={colours.accent_1} size={20} />
+            </Pressable>
+            <Pressable style={styles.photoAddButton} onPress={handlePickFromGallery}>
+              <ImagePlus color={colours.accent_1} size={20} />
+            </Pressable>
+          </View>
+        )}
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
           {photos.map((uri) => (
             <View key={uri} style={styles.photoThumbWrapper}>
@@ -274,17 +283,6 @@ export default function AddLocationModal({
               </Pressable>
             </View>
           ))}
-
-          {photos.length < MAX_PHOTOS && (
-            <View style={styles.photoAddTile}>
-              <Pressable style={styles.photoAddButton} onPress={handleTakePhoto}>
-                <Camera color={colours.accent_1} size={20} />
-              </Pressable>
-              <Pressable style={styles.photoAddButton} onPress={handlePickFromGallery}>
-                <ImagePlus color={colours.accent_1} size={20} />
-              </Pressable>
-            </View>
-          )}
         </ScrollView>
       </View>
 
@@ -420,6 +418,7 @@ const styles = StyleSheet.create({
   },
   photoScroll: {
     flexDirection: "row",
+    paddingTop: 16
   },
   photoThumbWrapper: {
     marginRight: 10,
@@ -445,8 +444,8 @@ const styles = StyleSheet.create({
   photoAddTile: {
     flexDirection: "row",
     gap: 8,
-    width: 80,
-    height: 80,
+    width: "100%",
+    height: 60,
   },
   photoAddButton: {
     flex: 1,
