@@ -1,6 +1,7 @@
 import AddLocationModal from "@/components/AddLocationModal";
 import BackButton from "@/components/BackButton";
 import { colours } from "@/constants/style";
+import { useNearbyLocationContext } from "@/context/NearbyLocationContext";
 import { useLocation } from "@/hooks/useLocation";
 import { CoordsType } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
@@ -13,6 +14,8 @@ Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
 export default function MapPage() {
   const { fullName: locationName, coords } = useLocation();
+
+  const { nearbyLocations, isLoading } = useNearbyLocationContext()
 
   const [currLocation, setCurrLocation] = useState<string>(locationName)
   const [currCoords, setCurrCoords] = useState<CoordsType | null>(coords)

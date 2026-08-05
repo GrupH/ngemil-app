@@ -19,6 +19,8 @@ export type NearbyLocations = {
   address: string;
   description: string;
   distance_m: number;
+  latitude: number;
+  longitude: number;
   avg_rating: number;
   rating_count: number;
   cover_image: string;
@@ -91,6 +93,8 @@ export type PlaceData = {
   title: string;
   rating: number;
   distance: string;
+  latitude: number;
+  longitude: number;
   address: string;
   tags: { name: string; count: number }[];
   description: string;
