@@ -8,7 +8,7 @@ import Mapbox from "@rnmapbox/maps";
 import { router } from "expo-router";
 import { MapPin, Plus, Search } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
@@ -112,7 +112,12 @@ export default function MapPage() {
             }
             animationMode="flyTo"
             animationDuration={isPickingLocation ? 300 : 500}
-          />
+          /> 
+          {!isLoading && nearbyLocations.map((location) => (
+            <Mapbox.PointAnnotation id={location.id} key={location.id} coordinate={[location.longitude, location.latitude]}>
+              {location.imageUrl ? <Image source={{uri: location.imageUrl}} style={styles.annotationImg}/> : <View style={[styles.annotationImg, {padding:5, backgroundColor: "red"}]}></View>}
+            </Mapbox.PointAnnotation>
+          ))}
           {coords && !isPickingLocation && <Mapbox.UserLocation visible={true} />}
         </Mapbox.MapView>
       </View>      
@@ -206,5 +211,12 @@ const styles = StyleSheet.create({
     zIndex: 10,
     top: 24,
     left: 24,
+  },
+  annotationImg:{
+    width: 40,
+    height: 40,
+    borderRadius: 999,
+    borderWidth: 4,
+    borderColor: colours.border_2
   }
 });
