@@ -181,7 +181,6 @@ export default function AddLocationModal({
       visible={modalVisible}
       onClose={() => setModalVisible(false)}
       maxHeight='100%'
-      keyboardAvoiding
     >
       <Text style={styles.placeTitle}>Add a New Location</Text>
       <Text style={styles.infoTextMuted}>
