@@ -116,6 +116,8 @@ export default function MapPage() {
         >
           <Mapbox.Camera
             zoomLevel={isPickingLocation ? 18 : 16}
+            minZoomLevel={12}
+            maxZoomLevel={20}
             centerCoordinate={
               isPickingLocation && pickerCenter
                 ? [pickerCenter.longitude, pickerCenter.latitude]
