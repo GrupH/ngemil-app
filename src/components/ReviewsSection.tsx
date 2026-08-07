@@ -1,8 +1,11 @@
 import { colours } from "@/constants/style";
 import { useAuth } from "@/hooks/auth";
+import { deleteRating } from "@/lib/ratings";
 import type { Review } from "@/types/types";
-import { ChevronRight, Plus, Star, User } from "lucide-react-native";
-import { useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useLocalSearchParams } from "expo-router";
+import { ChevronRight, EllipsisVertical, Pencil, Plus, Star, Trash2, User } from "lucide-react-native";
+import { useMemo, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 type ReviewsSectionProps = {
@@ -19,6 +22,10 @@ export default function ReviewsSection({
   const hasReviews = reviews && reviews.length > 0;
 
   const { user } = useAuth();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const queryClient = useQueryClient();
+
+  const [editReviewModal, setEditReviewModal] = useState<boolean>(false)
 
   // Put the logged-in user's review first, keep the rest in their existing order
   const orderedReviews = useMemo(() => {
@@ -32,6 +39,31 @@ export default function ReviewsSection({
 
   const userHasReview = !!reviews.find((review) => review.user_id === user?.id);
   const showAddButton = !isModal && !!onAddReview && !userHasReview;
+
+  function handleEditReviewModal(){
+    setEditReviewModal((prev) => !prev)
+  }
+
+  async function handleDeleteReview(){
+    if (!id){
+      console.log("no id", id)
+      return
+    }
+
+    try{
+      const { error } = await deleteRating(id)
+
+      if (error) throw error
+
+      setEditReviewModal(false)
+      reviews.filter((review) => review.user_id !== id)
+      
+      queryClient.invalidateQueries({ queryKey: ["locationById", id] });
+      queryClient.invalidateQueries({ queryKey: ["locationRatings", id] });
+    } catch(err){
+      console.error("Failed to delete rating:", err); //TODO: error TOAST 
+    }
+  }
 
   return (
     <View style={styles.sectionContainer}>
@@ -79,8 +111,22 @@ export default function ReviewsSection({
                       ))}
                     </View>
                   </View>
+                  {(isOwnReview && !isModal) && <Pressable onPress={handleEditReviewModal} style={{position:"absolute", right:0}}><EllipsisVertical size={18} color={colours.border_2}/></Pressable>}
                 </View>
                 <Text style={styles.reviewText}>{review.comment}</Text>
+
+                {(isOwnReview && editReviewModal && !isModal) &&
+                  <View style={styles.editReviewModal}>
+                    <Pressable style={styles.editReviewModalButtons}>
+                      <Pencil size={20} color={colours.text_primary}/>
+                      <Text style={styles.editReviewModalButtonsText}>Edit</Text>
+                    </Pressable>
+                    <Pressable style={styles.editReviewModalButtons} onPress={handleDeleteReview}>
+                      <Trash2 size={20} color={colours.text_primary} />
+                      <Text style={styles.editReviewModalButtonsText}>Delete</Text>
+                    </Pressable>
+                  </View>
+                }
               </View>
             );
           })}
@@ -213,4 +259,31 @@ const styles = StyleSheet.create({
     color: colours.text_primary,
     lineHeight: 16,
   },
+  editReviewModal:{
+    position:"absolute",
+    top:-84,
+    right:20,
+    padding:12,
+    gap:12,
+    backgroundColor: colours.secondary_bg,
+    borderWidth: 2,
+    borderColor: colours.border_1,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  editReviewModalButtons:{
+    gap: 16,
+    paddingVertical: 4,
+    paddingLeft: 2,
+    paddingRight: 36,
+    flexDirection: "row"
+  },
+  editReviewModalButtonsText:{
+    fontSize: 16,
+    color: colours.text_primary
+  }
 });

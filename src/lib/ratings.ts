@@ -32,6 +32,7 @@ export async function submitRating(locationId: string, rating: number, comment?:
 
 export async function deleteRating(locationId: string) {
   const { data: { user } } = await supabase.auth.getUser();
+
   return supabase
     .from('location_ratings')
     .delete()

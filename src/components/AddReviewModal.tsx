@@ -83,7 +83,7 @@ export default function RatingReviewModal({
       modalRef.current?.close();
     } catch (err) {
       console.error("Failed to submit rating:", err);
-      setSubmitError("Couldn't submit your review. Please try again.");
+      setSubmitError("Couldn't submit your review. Please try again."); //TODO: error toast
     } finally {
       setIsSubmitting(false);
     }
