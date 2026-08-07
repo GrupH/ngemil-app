@@ -39,3 +39,16 @@ export async function deleteRating(locationId: string) {
     .eq('location_id', locationId)
     .eq('user_id', user!.id);
 }
+
+export async function editRating(locationId: string, rating: number, comment?: string){
+  const { data: { user } } = await supabase.auth.getUser();
+
+  return supabase
+    .from('location_ratings')
+    .update({
+      rating: rating,
+      comment: comment
+    })
+    .eq('location_id', locationId)
+    .eq('user_id', user!.id);
+}

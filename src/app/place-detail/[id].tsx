@@ -11,6 +11,7 @@ import { useNearbyLocationContext } from "@/context/NearbyLocationContext";
 import { useAuth } from "@/hooks/auth";
 import { getLocationById } from "@/lib/locations";
 import type { LocationByID, PlaceData } from "@/types/types";
+import { ExistingReviewType } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MapPin, Star } from "lucide-react-native";
@@ -28,6 +29,11 @@ export default function PlaceDetailPage() {
 
   const [tagModalOpen, setTagModal] = useState<boolean>(false);
   const [reviewModalOpen, setReviewModal] = useState<boolean>(false);
+  const [isEdit, setEdit] = useState<boolean>(false)
+  const [existingReviewData, setExistingReviewData] = useState<ExistingReviewType>({
+    rating: 0,
+    review: ""
+  })
 
   const { data: locationData, isLoading } = useQuery({
     queryKey: ["locationById", id],
@@ -54,6 +60,8 @@ export default function PlaceDetailPage() {
       title: location.name,
       rating: location.location_rating_summary[0]?.avg_rating ?? -1,
       distance: distanceToLoc ?? "unknown",
+      latitude: 0,
+      longitude:0,
       tags: location.location_tag_vote_summary.map((item) => {
         return {
           name: item.tags.tag,
@@ -99,6 +107,19 @@ export default function PlaceDetailPage() {
     }
     
     setReviewModal(visible);
+  }
+
+  function handleAddEditReview(
+    isEdit: boolean =false, 
+    existingData:
+    ExistingReviewType = {
+      rating: 0,
+      review: ""
+    }
+  ){
+    setReviewModalVisible(true)
+    setEdit(isEdit)
+    setExistingReviewData(existingData)
   }
 
   if (isLoading) return <PlaceDetailSkeleton variant="page" />;
@@ -166,7 +187,7 @@ export default function PlaceDetailPage() {
           {/* REVIEWS Section */}
           <ReviewsSection
             reviews={reviews}
-            onAddReview={() => setReviewModalVisible(true)}
+            onAddReview={handleAddEditReview}
           />
         </ScrollView>
       </View>
@@ -177,6 +198,8 @@ export default function PlaceDetailPage() {
       <AddReviewModal
         modalVisible={reviewModalOpen}
         setModalVisible={setReviewModalVisible}
+        isEdit={isEdit}
+        existingData={existingReviewData}
       />
     </SafeAreaView>
   );

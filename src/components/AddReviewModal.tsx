@@ -1,9 +1,10 @@
 import { colours } from "@/constants/style";
-import { submitRating } from "@/lib/ratings";
+import { editRating, submitRating } from "@/lib/ratings";
+import { ExistingReviewType } from "@/types/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { Star } from "lucide-react-native";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Pressable,
   StyleSheet,
@@ -27,19 +28,26 @@ type RatingReviewModalProps = {
   modalVisible: boolean;
   setModalVisible: (visible: boolean) => void;
   onSubmit?: (rating: number, review: string) => void;
+  isEdit?: boolean;
+  existingData?: ExistingReviewType
 };
 
 export default function RatingReviewModal({
   modalVisible,
   setModalVisible,
   onSubmit,
+  isEdit = false,
+  existingData = {
+    rating: 0,
+    review: ""
+  }
 }: RatingReviewModalProps) {
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
   const modalRef = useRef<ModalHandle>(null);
 
-  const [rating, setRating] = useState(0);
-  const [review, setReview] = useState("");
+  const [rating, setRating] = useState(existingData.rating);
+  const [review, setReview] = useState(existingData.review);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -49,6 +57,11 @@ export default function RatingReviewModal({
     () => (rating > 0 ? RATING_LABELS[rating] : "Tap a star to rate"),
     [rating]
   );
+
+  useEffect(() => {
+    setRating(existingData.rating)
+    setReview(existingData.review)
+  }, [existingData])
 
   const handleRate = (value: number) => {
     if (rating === value) {
@@ -89,6 +102,36 @@ export default function RatingReviewModal({
     }
   };
 
+  const handleEdit = async () => {
+    if (!canSubmit || !id) return;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      const trimmedReview = review.trim();
+      const { error } = await editRating(
+        id,
+        rating,
+        trimmedReview.length > 0 ? trimmedReview : undefined
+      );
+
+      if (error) throw error;
+
+      onSubmit?.(rating, trimmedReview);
+      queryClient.invalidateQueries({ queryKey: ["locationById", id] });
+      queryClient.invalidateQueries({ queryKey: ["locationRatings", id] });
+
+      setRating(0);
+      setReview("");
+      modalRef.current?.close();
+    } catch (err) {
+      console.error("Failed to edit rating:", err);
+      setSubmitError("Couldn't edit your review. Please try again."); //TODO: error toast
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <ModalComponent
       ref={modalRef}
@@ -97,8 +140,10 @@ export default function RatingReviewModal({
       maxHeight="100%"
       keyboardAvoiding
     >
-      <Text style={styles.placeTitle}>Add Your Review</Text>
-      <Text style={styles.infoTextMuted}>Share your experience with this spot</Text>
+      <Text style={styles.placeTitle}>{isEdit ? 'Edit' : 'Add'} Your Review</Text>
+      <Text style={styles.infoTextMuted}>
+        {isEdit ? "Update your thoughts on this spot" : "Share your experience with this spot"}
+      </Text>
 
       <View style={styles.starRow}>
         {[1, 2, 3, 4, 5].map((value) => {
@@ -149,7 +194,7 @@ export default function RatingReviewModal({
       <View style={styles.footer}>
         <Pressable
           style={[styles.detailButton, !canSubmit && styles.buttonDisabled]}
-          onPress={handleSubmit}
+          onPress={isEdit ? handleEdit : handleSubmit}
           disabled={!canSubmit}
         >
           <Text

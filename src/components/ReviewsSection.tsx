@@ -2,16 +2,17 @@ import { colours } from "@/constants/style";
 import { useAuth } from "@/hooks/auth";
 import { deleteRating } from "@/lib/ratings";
 import type { Review } from "@/types/types";
+import { ExistingReviewType } from "@/types/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { ChevronRight, EllipsisVertical, Pencil, Plus, Star, Trash2, User } from "lucide-react-native";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 type ReviewsSectionProps = {
   reviews: Review[];
   isModal?: boolean;
-  onAddReview?: () => void;
+  onAddReview?: (isEdit: boolean, existingData: ExistingReviewType) => void;
 };
 
 export default function ReviewsSection({
@@ -26,6 +27,7 @@ export default function ReviewsSection({
   const queryClient = useQueryClient();
 
   const [editReviewModal, setEditReviewModal] = useState<boolean>(false)
+  const editReviewModalRef = useRef(null)
 
   // Put the logged-in user's review first, keep the rest in their existing order
   const orderedReviews = useMemo(() => {
@@ -57,7 +59,7 @@ export default function ReviewsSection({
 
       setEditReviewModal(false)
       reviews.filter((review) => review.user_id !== id)
-      
+
       queryClient.invalidateQueries({ queryKey: ["locationById", id] });
       queryClient.invalidateQueries({ queryKey: ["locationRatings", id] });
     } catch(err){
@@ -116,8 +118,11 @@ export default function ReviewsSection({
                 <Text style={styles.reviewText}>{review.comment}</Text>
 
                 {(isOwnReview && editReviewModal && !isModal) &&
-                  <View style={styles.editReviewModal}>
-                    <Pressable style={styles.editReviewModalButtons}>
+                  <View style={styles.editReviewModal} ref={editReviewModalRef}>
+                      <Pressable style={styles.editReviewModalButtons} onPress={() => {onAddReview && 
+                        onAddReview(true, {rating: review.rating, review: review.comment})
+                        setEditReviewModal(false)
+                      }}>
                       <Pencil size={20} color={colours.text_primary}/>
                       <Text style={styles.editReviewModalButtonsText}>Edit</Text>
                     </Pressable>
@@ -139,7 +144,7 @@ export default function ReviewsSection({
             styles.addReviewCard,
             pressed && styles.addReviewCardPressed,
           ]}
-          onPress={onAddReview}
+          onPress={() => onAddReview}
         >
           <View style={styles.addReviewIconCircle}>
             <Plus color={colours.secondary_bg} size={16} strokeWidth={2.5} />

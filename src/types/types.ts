@@ -69,6 +69,11 @@ export interface LocationRating {
   };
 }
 
+export interface ExistingReviewType {
+  rating: number;
+  review: string
+}
+
 export interface LocationTagVoteSummary {
   tags: { tag: any };
   vote_count: any;
