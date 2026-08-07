@@ -18,6 +18,7 @@ import {
 export default function AuthScreen() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,7 +26,7 @@ export default function AuthScreen() {
 
   // Simple input validation
   const validateForm = () => {
-    if (!email.trim() || !password.trim()) {
+    if (!email.trim() || !password.trim() || !username.trim()) {
       setError("Please fill out all fields.");
       return false;
     }
@@ -43,10 +44,14 @@ export default function AuthScreen() {
     setError("");
 
     const cleanEmail = email.trim();
+    const cleanUsername = username.trim()
 
-    const { error } = isLogin
+    const { data, error } = isLogin
       ? await supabase.auth.signInWithPassword({ email: cleanEmail, password })
-      : await supabase.auth.signUp({ email: cleanEmail, password });
+      : await supabase.auth.signUp({ 
+        email: cleanEmail, 
+        password
+      });
 
     if (error) {
       setError(error.message);
@@ -56,6 +61,13 @@ export default function AuthScreen() {
       } else {
         router.replace("/profile");
       }
+    }
+
+    if (data.user) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ username: cleanUsername })
+        .eq('id', data.user.id);
     }
 
     setLoading(false);
@@ -96,7 +108,20 @@ export default function AuthScreen() {
           </Text>
 
           <View style={styles.fields}>
+            <Text style={styles.label}>Username</Text>
+            {!isLogin && 
+            <TextInput
+              style={styles.input}
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder="e.g. John"
+              placeholderTextColor={colours.text_secondary}
+            />
+            }
             <Text style={styles.label}>Email</Text>
+
             <TextInput
               style={styles.input}
               value={email}

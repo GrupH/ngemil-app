@@ -144,7 +144,7 @@ export default function ReviewsSection({
             styles.addReviewCard,
             pressed && styles.addReviewCardPressed,
           ]}
-          onPress={() => onAddReview}
+          onPress={() => onAddReview && onAddReview(false, {rating: 0, review: ""})}
         >
           <View style={styles.addReviewIconCircle}>
             <Plus color={colours.secondary_bg} size={16} strokeWidth={2.5} />
