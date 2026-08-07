@@ -26,7 +26,7 @@ export default function AuthScreen() {
 
   // Simple input validation
   const validateForm = () => {
-    if (!email.trim() || !password.trim() || !username.trim()) {
+    if (!email.trim() || !password.trim() || (!isLogin && !username.trim())) {
       setError("Please fill out all fields.");
       return false;
     }
@@ -108,17 +108,20 @@ export default function AuthScreen() {
           </Text>
 
           <View style={styles.fields}>
-            <Text style={styles.label}>Username</Text>
-            {!isLogin && 
-            <TextInput
-              style={styles.input}
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-              autoCorrect={false}
-              placeholder="e.g. John"
-              placeholderTextColor={colours.text_secondary}
-            />
+            
+            {!isLogin &&
+            <>
+              <Text style={styles.label}>Username</Text> 
+              <TextInput
+                style={styles.input}
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="e.g. John"
+                placeholderTextColor={colours.text_secondary}
+              />
+            </>
             }
             <Text style={styles.label}>Email</Text>
 

@@ -2,10 +2,11 @@ import AddLocationModal from "@/components/AddLocationModal";
 import BackButton from "@/components/BackButton";
 import { colours } from "@/constants/style";
 import { useNearbyLocationContext } from "@/context/NearbyLocationContext";
+import { useAuth } from "@/hooks/auth";
 import { useLocation } from "@/hooks/useLocation";
 import { CoordsType } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 import { MapPin, Plus, Search } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
@@ -14,6 +15,8 @@ Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
 export default function MapPage() {
   const { fullName: locationName, coords } = useLocation();
+  const { user } = useAuth()
+  const router = useRouter()
 
   const { nearbyLocations, isLoading } = useNearbyLocationContext()
 
@@ -66,7 +69,15 @@ export default function MapPage() {
 
       {!isPickingLocation && (
         <View style={styles.addLocationContainer}>
-          <Pressable style={styles.addLocationIconCircle} onPress={() => setModalVisible(true)}>
+          <Pressable style={styles.addLocationIconCircle} onPress={() => {
+            if(!user){
+              router.push({
+                pathname: '/auth',
+                params: { redirectTo: '/map'},
+              });
+            }
+            setModalVisible(true)
+            }}>
             <Plus color={colours.secondary_bg} size={28} strokeWidth={2} />
           </Pressable>
         </View>
