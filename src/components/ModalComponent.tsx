@@ -11,6 +11,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Modal,
+  PanResponder,
   Platform,
   Pressable,
   StyleSheet,
@@ -118,6 +119,29 @@ const ModalComponent = forwardRef<ModalHandle, ModalProps>(
     });
   };
 
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 2,
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          sheetTranslateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 100 || gestureState.vy > 0.5) {
+          handleClose();
+        } else {
+          Animated.spring(sheetTranslateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            bounciness: 4,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
   // Lets any child content (e.g. a "View Details" button) trigger the same
   // animated close instead of calling onClose directly and skipping it.
   useImperativeHandle(ref, () => ({
@@ -135,7 +159,7 @@ const ModalComponent = forwardRef<ModalHandle, ModalProps>(
         contentStyle,
       ]}
     >
-      <View style={styles.dragHandleContainer}>
+      <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
         <View style={styles.dragHandle} />
       </View>
 

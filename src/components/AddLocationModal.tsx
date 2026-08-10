@@ -180,110 +180,120 @@ export default function AddLocationModal({
       ref={modalRef}
       visible={modalVisible}
       onClose={() => setModalVisible(false)}
-      maxHeight='100%'
+      maxHeight="100%"
+      keyboardAvoiding
     >
       <Text style={styles.placeTitle}>Add a New Location</Text>
       <Text style={styles.infoTextMuted}>
         Please provide the proper details of the location
       </Text>
 
-      <View style={styles.fieldGroup}>
-        <Text style={styles.fieldLabel}>Name</Text>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. Central Park Cafe"
-            placeholderTextColor={colours.text_placeholder}
-            value={newLocationDetails.name}
-            onChangeText={(text: string) =>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        style={styles.formScroll}
+        contentContainerStyle={styles.formScrollContent}
+      >
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>Name</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. Central Park Cafe"
+              placeholderTextColor={colours.text_placeholder}
+              value={newLocationDetails.name}
+              onChangeText={(text: string) =>
                 setLocationDetails((prev: LocationDetailType) => ({ ...prev, name: text }))
-            }
-          />
-        </View>
-      </View>
-
-      <View style={styles.fieldGroup}>
-        <Text style={styles.fieldLabel}>Address</Text>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. 123 Main St, Springfield"
-            placeholderTextColor={colours.text_placeholder}
-            value={newLocationDetails.address}
-            onChangeText={(text: string) =>
-                setLocationDetails((prev: LocationDetailType) => ({ ...prev, address: text }))
-            }
-          />
-        </View>
-      </View>
-
-      <View style={styles.fieldGroup}>
-        <Text style={styles.fieldLabel}>Exact Location</Text>
-        <Pressable style={styles.locationPickerButton} onPress={handleAdjustLocation}>
-          <LocateFixed color={colours.accent_1} size={18} />
-          <Text style={styles.locationPickerText}>
-            {newLocationDetails.latitude && newLocationDetails.longitude
-              ? `${newLocationDetails.latitude.toFixed(5)}, ${newLocationDetails.longitude.toFixed(5)}`
-              : "Adjust pin on map"}
-          </Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.fieldGroup}>
-        <Text style={styles.fieldLabel}>Description</Text>
-        <View style={styles.reviewInputContainer}>
-          <TextInput
-            style={styles.reviewInput}
-            placeholder="What makes this place worth visiting?"
-            placeholderTextColor={colours.text_placeholder}
-            multiline
-            maxLength={MAX_DESCRIPTION_LENGTH}
-            value={newLocationDetails.description}
-            onChangeText={(text: string) =>
-                setLocationDetails((prev: LocationDetailType) => ({ ...prev, description: text }))
-            }
-            textAlignVertical="top"
-          />
-          <Text style={styles.charCount}>
-            {newLocationDetails.description.length}/{MAX_DESCRIPTION_LENGTH}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.fieldGroup}>
-        <View style={styles.photoHeaderRow}>
-          <Text style={styles.fieldLabel}>Add Place Photos</Text>
-          <Text style={styles.photoCount}>
-            {photos.length}/{MAX_PHOTOS}
-          </Text>
-        </View>
-
-        {photos.length < MAX_PHOTOS && (
-          <View style={styles.photoAddTile}>
-            <Pressable style={styles.photoAddButton} onPress={handleTakePhoto}>
-              <Camera color={colours.accent_1} size={20} />
-            </Pressable>
-            <Pressable style={styles.photoAddButton} onPress={handlePickFromGallery}>
-              <ImagePlus color={colours.accent_1} size={20} />
-            </Pressable>
+              }
+            />
           </View>
-        )}
+        </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
-          {photos.map((uri) => (
-            <View key={uri} style={styles.photoThumbWrapper}>
-              <Image source={{ uri }} style={styles.photoThumb} />
-              <Pressable
-                style={styles.photoRemoveButton}
-                onPress={() => handleRemovePhoto(uri)}
-                hitSlop={8}
-              >
-                <X color={colours.secondary_bg} size={14} strokeWidth={3} />
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>Address</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. 123 Main St, Springfield"
+              placeholderTextColor={colours.text_placeholder}
+              value={newLocationDetails.address}
+              onChangeText={(text: string) =>
+                setLocationDetails((prev: LocationDetailType) => ({ ...prev, address: text }))
+              }
+            />
+          </View>
+        </View>
+
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>Exact Location</Text>
+          <Pressable style={styles.locationPickerButton} onPress={handleAdjustLocation}>
+            <LocateFixed color={colours.accent_1} size={18} />
+            <Text style={styles.locationPickerText}>
+              {newLocationDetails.latitude && newLocationDetails.longitude
+                ? `${newLocationDetails.latitude.toFixed(5)}, ${newLocationDetails.longitude.toFixed(5)}`
+                : "Adjust pin on map"}
+            </Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>Description</Text>
+          <View style={styles.reviewInputContainer}>
+            <TextInput
+              style={styles.reviewInput}
+              placeholder="What makes this place worth visiting?"
+              placeholderTextColor={colours.text_placeholder}
+              multiline
+              maxLength={MAX_DESCRIPTION_LENGTH}
+              value={newLocationDetails.description}
+              onChangeText={(text: string) =>
+                setLocationDetails((prev: LocationDetailType) => ({ ...prev, description: text }))
+              }
+              textAlignVertical="top"
+            />
+            <Text style={styles.charCount}>
+              {newLocationDetails.description.length}/{MAX_DESCRIPTION_LENGTH}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.fieldGroup}>
+          <View style={styles.photoHeaderRow}>
+            <Text style={styles.fieldLabel}>Add Place Photos</Text>
+            <Text style={styles.photoCount}>
+              {photos.length}/{MAX_PHOTOS}
+            </Text>
+          </View>
+
+          {photos.length < MAX_PHOTOS && (
+            <View style={styles.photoAddTile}>
+              <Pressable style={styles.photoAddButton} onPress={handleTakePhoto}>
+                <Camera color={colours.accent_1} size={20} />
+              </Pressable>
+              <Pressable style={styles.photoAddButton} onPress={handlePickFromGallery}>
+                <ImagePlus color={colours.accent_1} size={20} />
               </Pressable>
             </View>
-          ))}
-        </ScrollView>
-      </View>
+          )}
+
+          {photos.length > 0 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
+              {photos.map((uri) => (
+                <View key={uri} style={styles.photoThumbWrapper}>
+                  <Image source={{ uri }} style={styles.photoThumb} />
+                  <Pressable
+                    style={styles.photoRemoveButton}
+                    onPress={() => handleRemovePhoto(uri)}
+                    hitSlop={8}
+                  >
+                    <X color={colours.secondary_bg} size={14} strokeWidth={3} />
+                  </Pressable>
+                </View>
+              ))}
+            </ScrollView>
+          )}
+        </View>
+      </ScrollView>
 
       <View style={styles.footer}>
         <Pressable
@@ -300,7 +310,7 @@ export default function AddLocationModal({
                 {isSubmitting ? "Submitting..." : "Add Location"}
             </Text>
         </Pressable>
-    </View>
+      </View>
     </ModalComponent>
   );
 }
@@ -319,9 +329,16 @@ const styles = StyleSheet.create({
     color: colours.text_secondary,
     lineHeight: 18,
     marginTop: 6,
+    marginBottom: 8,
+  },
+  formScroll: {
+    flexShrink: 1,
+  },
+  formScrollContent: {
+    paddingBottom: 16,
   },
   fieldGroup: {
-    marginTop: 20,
+    marginTop: 16,
   },
   fieldLabel: {
     fontSize: 13,
@@ -367,7 +384,7 @@ const styles = StyleSheet.create({
     marginHorizontal: -24,
     paddingHorizontal: 24,
     paddingTop: 16,
-    marginTop: 24,
+    marginTop: 12,
   },
   detailButton: {
     width: "100%",
