@@ -21,6 +21,9 @@ export function useLocation() {
 
   useEffect(() => {
     let subscription: Location.LocationSubscription | null = null;
+    let lastGeocodedCoords: CoordsType | null = null;
+    let lastName = "Active Location";
+    let lastFullName = "Active Location";
 
     async function startLocationTracking() {
       try {
@@ -35,13 +38,11 @@ export function useLocation() {
           });
           return;
         }
-        // Start watching the location instead of getting it once
+        // Start watching the location with 50m interval
         subscription = await Location.watchPositionAsync(
           {
             accuracy: Location.Accuracy.Balanced,
-            // trigger an update whenever the user moves (value) meters
-            // adjust it if u want lol
-            distanceInterval: 15,
+            distanceInterval: 50,
           },
           async (userLoc) => {
             const currentCoords = {
@@ -49,24 +50,37 @@ export function useLocation() {
               longitude: userLoc.coords.longitude,
             };
 
-            let name = "Active Location", fullName = "Active Location";
-            // Try to reverse geocode the updated coordinates
-            try {
-              const geocode = await Location.reverseGeocodeAsync(currentCoords);
-              if (geocode && geocode.length > 0) {
-                const addr = geocode[0];
-                name =
-                  //addr.street || TODO: Decide on whether to use streetname or not
-                  addr.district ||
-                  addr.city ||
-                  addr.subregion ||
-                  "Active Location";
-                
-                fullName = `${addr.district || addr.street}, ${addr.city}`
+            // Only reverse geocode if moved > 100m or initial fix to save network & battery
+            let name = lastName;
+            let fullName = lastFullName;
+
+            const dist = lastGeocodedCoords
+              ? Math.hypot(
+                  (currentCoords.latitude - lastGeocodedCoords.latitude) * 111000,
+                  (currentCoords.longitude - lastGeocodedCoords.longitude) * 111000
+                )
+              : 999;
+
+            if (!lastGeocodedCoords || dist > 100) {
+              try {
+                const geocode = await Location.reverseGeocodeAsync(currentCoords);
+                if (geocode && geocode.length > 0) {
+                  const addr = geocode[0];
+                  name =
+                    addr.district ||
+                    addr.city ||
+                    addr.subregion ||
+                    "Active Location";
+                  fullName = `${addr.district || addr.street || ""}, ${addr.city || ""}`.replace(/^,\s*/, "");
+                  lastName = name;
+                  lastFullName = fullName;
+                  lastGeocodedCoords = currentCoords;
+                }
+              } catch (e) {
+                console.warn("Failed to reverse geocode location:", e);
               }
-            } catch (e) {
-              console.warn("Failed to reverse geocode location:", e);
             }
+
             // Update state dynamically with the new location data
             setState({
               coords: currentCoords,
