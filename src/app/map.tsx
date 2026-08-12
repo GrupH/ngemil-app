@@ -118,6 +118,8 @@ export default function MapPage() {
             zoomLevel={isPickingLocation ? 18 : 16}
             minZoomLevel={12}
             maxZoomLevel={20}
+            followUserLocation={!isPickingLocation}
+            followUserMode={Mapbox.UserTrackingMode.Follow}
             centerCoordinate={
               isPickingLocation && pickerCenter
                 ? [pickerCenter.longitude, pickerCenter.latitude]

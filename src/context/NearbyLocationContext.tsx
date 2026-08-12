@@ -54,19 +54,24 @@ function NearbyLocationProvider({children}: {children: React.ReactNode}){
         };
     }
 
+    // Quantize coordinates to ~500m grid so minor GPS movements don't trigger unnecessary re-fetches
+    const latKey = coords ? Math.round(coords.latitude * 200) / 200 : null;
+    const lngKey = coords ? Math.round(coords.longitude * 200) / 200 : null;
+
     const { data: nearbyLocations = [], isLoading } = useQuery({
-        queryKey: ["nearbyLocations", coords?.latitude, coords?.longitude],
+        queryKey: ["nearbyLocations", latKey, lngKey],
         enabled: !!coords,
         queryFn: async () => {
-        const { data, error } = await getNearbyLocations(
-            coords!.latitude,
-            coords!.longitude,
-            50000, // TODO: decide max distance
-        );
+          const DEFAULT_RADIUS_METERS = 5000;    
+          const { data, error } = await getNearbyLocations(
+              coords!.latitude,
+              coords!.longitude,
+              DEFAULT_RADIUS_METERS,
+          );
 
-        if (error) throw error;
+          if (error) throw error;
 
-        return (data ?? []).map(parseLocationData);
+          return (data ?? []).map(parseLocationData);
         },
     });
 
@@ -88,3 +93,4 @@ function useNearbyLocationContext() {
 }
 
 export { NearbyLocationProvider, useNearbyLocationContext };
+
