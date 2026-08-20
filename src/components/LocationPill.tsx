@@ -28,18 +28,20 @@ const styles = StyleSheet.create({
     maxWidth: 180,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#726E83",
     borderRadius: 9999,
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     alignSelf: "flex-start",
+    gap: 10
   },
   pressedPill: {
     opacity: 0.8,
   },
   iconContainer: {
-    width: 18,
-    height: 18,
+    width: 16,
+    height: 16,
     position: "relative",
   },
   iconHole: {
@@ -53,8 +55,8 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "700",
-    paddingHorizontal: 12,
+    flexShrink: 1,
   },
 });

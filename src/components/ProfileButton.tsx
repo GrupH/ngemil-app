@@ -12,15 +12,15 @@ export default function ProfileButton({ onPress }: ProfileButtonProps) {
       onPress={onPress}
       style={({ pressed }) => [styles.button, pressed && styles.pressed]}
     >
-      <User color={colours.accent_1} size={22} strokeWidth={2.5} />
+      <User color={colours.accent_1} size={20} strokeWidth={2.5} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 22,
     backgroundColor: colours.border_1,
     borderWidth: 2,
