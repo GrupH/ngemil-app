@@ -1,4 +1,4 @@
-import { colours } from "@/constants/style";
+import { useTheme } from "@/context/ThemeContext";
 import { submitLocation } from "@/lib/locations";
 import { submitPhotos } from "@/lib/photos";
 import { CoordsType } from "@/types/types";
@@ -24,34 +24,37 @@ type AddLocationModalProps = {
   modalVisible: boolean;
   setModalVisible: (visible: boolean) => void;
   coords: CoordsType | null;
-  onRequestPickLocation: (startCoords: CoordsType) => void; // NEW
+  onRequestPickLocation: (startCoords: CoordsType) => void;
 };
 
 type LocationDetailType = {
-    name: string
-    address: string
-    description: string
-} & CoordsType
+  name: string;
+  address: string;
+  description: string;
+} & CoordsType;
 
 export default function AddLocationModal({
   modalVisible,
   setModalVisible,
   onRequestPickLocation,
-  coords
+  coords,
 }: AddLocationModalProps) {
   const modalRef = useRef<ModalHandle>(null);
+  const { colours } = useTheme();
 
   const defaultLocationDetails = {
     name: "",
     address: "",
     description: "",
     latitude: coords?.latitude || 0,
-    longitude: coords?.longitude || 0
-  }
+    longitude: coords?.longitude || 0,
+  };
 
   const queryClient = useQueryClient();
 
-  const [newLocationDetails, setLocationDetails] = useState<LocationDetailType>(defaultLocationDetails);
+  const [newLocationDetails, setLocationDetails] = useState<LocationDetailType>(
+    defaultLocationDetails
+  );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -59,69 +62,85 @@ export default function AddLocationModal({
   const [photos, setPhotos] = useState<string[]>([]);
 
   useEffect(() => {
-    if(coords && coords.latitude && coords.longitude){
-        setLocationDetails((prev: LocationDetailType) => ({ ...prev, latitude: coords.latitude, longitude: coords.longitude }))
+    if (coords && coords.latitude && coords.longitude) {
+      setLocationDetails((prev: LocationDetailType) => ({
+        ...prev,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      }));
     }
-  }, [coords])
+  }, [coords]);
 
-  // SUBMIT LOCATION
-  const canSubmit = (newLocationDetails.name !== "") && (newLocationDetails.address !== "") && (newLocationDetails.description !== "")
+  const canSubmit =
+    newLocationDetails.name !== "" &&
+    newLocationDetails.address !== "" &&
+    newLocationDetails.description !== "";
 
-  async function handleSubmitLocation(){
+  async function handleSubmitLocation() {
+    if (
+      !newLocationDetails.latitude ||
+      !newLocationDetails.longitude ||
+      newLocationDetails.latitude === 0 ||
+      newLocationDetails.longitude === 0
+    )
+      console.log("no coord");
 
-    //TODO: toast for submission errors
+    if (
+      newLocationDetails.name === "" ||
+      newLocationDetails.address === "" ||
+      newLocationDetails.description === ""
+    )
+      console.log("no detail");
 
-    if(!newLocationDetails.latitude || !newLocationDetails.longitude || newLocationDetails.latitude === 0 || newLocationDetails.longitude === 0) console.log("no coord") // error here
+    setIsSubmitting(true);
+    try {
+      const { data, error } = await submitLocation(
+        newLocationDetails.name,
+        newLocationDetails.address,
+        newLocationDetails.description,
+        newLocationDetails.latitude,
+        newLocationDetails.longitude
+      );
 
-    if(newLocationDetails.name === "" || newLocationDetails.address === "" || newLocationDetails.description === "") console.log("no detail") // error here
+      if (error) throw error;
 
-    setIsSubmitting(true)
-    try{
-        const { data, error } = await submitLocation(
-            newLocationDetails.name,
-            newLocationDetails.address,
-            newLocationDetails.description,
-            newLocationDetails.latitude,
-            newLocationDetails.longitude
-        )
+      const locationId = data?.id;
 
-        if (error) throw error;
+      if (photos.length > 0) {
+        const photoResults = await Promise.allSettled(
+          photos.map((uri, index) =>
+            submitPhotos(uri, locationId, index === 0)
+          )
+        );
 
-        const locationId = data?.id;
+        const failedCount = photoResults.filter(
+          (r) =>
+            r.status === "rejected" ||
+            (r.status === "fulfilled" && r.value.error)
+        ).length;
 
-        if (photos.length > 0) {
-          const photoResults = await Promise.allSettled(
-            photos.map((uri, index) =>
-              submitPhotos(uri, locationId, index === 0)
-            )
+        if (failedCount > 0) {
+          console.error(
+            `${failedCount} of ${photos.length} photos failed to upload`
           );
-
-          const failedCount = photoResults.filter(
-            (r) => r.status === "rejected" || (r.status === "fulfilled" && r.value.error)
-          ).length;
-
-          if (failedCount > 0) {
-            console.error(`${failedCount} of ${photos.length} photos failed to upload`);
-            // TODO: toast — location saved, but some photos failed
-          }
         }
+      }
 
-        queryClient.invalidateQueries({ queryKey: ["nearbyLocations", coords?.latitude, coords?.longitude] });
-        queryClient.invalidateQueries({ queryKey: ["locationById", locationId] });
-
-    } catch(err){
-        console.error("Failed to submit new location:", err);
-        setSubmitError("Couldn't submit new location. Please try again.");
+      queryClient.invalidateQueries({
+        queryKey: ["nearbyLocations", coords?.latitude, coords?.longitude],
+      });
+      queryClient.invalidateQueries({ queryKey: ["locationById", locationId] });
+    } catch (err) {
+      console.error("Failed to submit new location:", err);
+      setSubmitError("Couldn't submit new location. Please try again.");
     } finally {
-        setIsSubmitting(false);
-        setLocationDetails(defaultLocationDetails)
-        setPhotos([])
-        modalRef.current?.close();
+      setIsSubmitting(false);
+      setLocationDetails(defaultLocationDetails);
+      setPhotos([]);
+      modalRef.current?.close();
     }
-
   }
 
-  // ADJUST LOCATION
   function handleAdjustLocation() {
     onRequestPickLocation({
       latitude: newLocationDetails.latitude || coords?.latitude || 0,
@@ -129,19 +148,18 @@ export default function AddLocationModal({
     });
   }
 
-  // PHOTOS
   async function handlePickFromGallery() {
     if (photos.length >= MAX_PHOTOS) return;
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      console.log("Gallery permission denied"); // TODO: toast
+      console.log("Gallery permission denied");
       return;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.7, // lower it if need to save supabase storage
+      quality: 0.7,
       allowsMultipleSelection: true,
       selectionLimit: MAX_PHOTOS - photos.length,
     });
@@ -157,7 +175,7 @@ export default function AddLocationModal({
 
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
-      console.log("Camera permission denied"); // TODO: toast
+      console.log("Camera permission denied");
       return;
     }
 
@@ -183,8 +201,10 @@ export default function AddLocationModal({
       maxHeight="100%"
       keyboardAvoiding
     >
-      <Text style={styles.placeTitle}>Add a New Location</Text>
-      <Text style={styles.infoTextMuted}>
+      <Text style={[styles.placeTitle, { color: colours.text_primary }]}>
+        Add a New Location
+      </Text>
+      <Text style={[styles.infoTextMuted, { color: colours.text_secondary }]}>
         Please provide the proper details of the location
       </Text>
 
@@ -195,63 +215,115 @@ export default function AddLocationModal({
         contentContainerStyle={styles.formScrollContent}
       >
         <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>Name</Text>
-          <View style={styles.inputContainer}>
+          <Text style={[styles.fieldLabel, { color: colours.text_primary }]}>
+            Name
+          </Text>
+          <View
+            style={[
+              styles.inputContainer,
+              {
+                backgroundColor: colours.input_bg,
+                borderColor: colours.border_1,
+              },
+            ]}
+          >
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colours.text_primary }]}
               placeholder="e.g. Central Park Cafe"
               placeholderTextColor={colours.text_placeholder}
               value={newLocationDetails.name}
               onChangeText={(text: string) =>
-                setLocationDetails((prev: LocationDetailType) => ({ ...prev, name: text }))
+                setLocationDetails((prev: LocationDetailType) => ({
+                  ...prev,
+                  name: text,
+                }))
               }
             />
           </View>
         </View>
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>Address</Text>
-          <View style={styles.inputContainer}>
+          <Text style={[styles.fieldLabel, { color: colours.text_primary }]}>
+            Address
+          </Text>
+          <View
+            style={[
+              styles.inputContainer,
+              {
+                backgroundColor: colours.input_bg,
+                borderColor: colours.border_1,
+              },
+            ]}
+          >
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colours.text_primary }]}
               placeholder="e.g. 123 Main St, Springfield"
               placeholderTextColor={colours.text_placeholder}
               value={newLocationDetails.address}
               onChangeText={(text: string) =>
-                setLocationDetails((prev: LocationDetailType) => ({ ...prev, address: text }))
+                setLocationDetails((prev: LocationDetailType) => ({
+                  ...prev,
+                  address: text,
+                }))
               }
             />
           </View>
         </View>
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>Exact Location</Text>
-          <Pressable style={styles.locationPickerButton} onPress={handleAdjustLocation}>
+          <Text style={[styles.fieldLabel, { color: colours.text_primary }]}>
+            Exact Location
+          </Text>
+          <Pressable
+            style={[
+              styles.locationPickerButton,
+              {
+                backgroundColor: colours.input_bg,
+                borderColor: colours.border_1,
+              },
+            ]}
+            onPress={handleAdjustLocation}
+          >
             <LocateFixed color={colours.accent_1} size={18} />
-            <Text style={styles.locationPickerText}>
+            <Text style={[styles.locationPickerText, { color: colours.text_primary }]}>
               {newLocationDetails.latitude && newLocationDetails.longitude
-                ? `${newLocationDetails.latitude.toFixed(5)}, ${newLocationDetails.longitude.toFixed(5)}`
+                ? `${newLocationDetails.latitude.toFixed(
+                    5
+                  )}, ${newLocationDetails.longitude.toFixed(5)}`
                 : "Adjust pin on map"}
             </Text>
           </Pressable>
         </View>
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>Description</Text>
-          <View style={styles.reviewInputContainer}>
+          <Text style={[styles.fieldLabel, { color: colours.text_primary }]}>
+            Description
+          </Text>
+          <View
+            style={[
+              styles.reviewInputContainer,
+              {
+                backgroundColor: colours.input_bg,
+                borderColor: colours.border_1,
+              },
+            ]}
+          >
             <TextInput
-              style={styles.reviewInput}
+              style={[styles.reviewInput, { color: colours.text_primary }]}
               placeholder="What makes this place worth visiting?"
               placeholderTextColor={colours.text_placeholder}
               multiline
               maxLength={MAX_DESCRIPTION_LENGTH}
               value={newLocationDetails.description}
               onChangeText={(text: string) =>
-                setLocationDetails((prev: LocationDetailType) => ({ ...prev, description: text }))
+                setLocationDetails((prev: LocationDetailType) => ({
+                  ...prev,
+                  description: text,
+                }))
               }
               textAlignVertical="top"
             />
-            <Text style={styles.charCount}>
+            <Text style={[styles.charCount, { color: colours.text_secondary }]}>
               {newLocationDetails.description.length}/{MAX_DESCRIPTION_LENGTH}
             </Text>
           </View>
@@ -259,34 +331,55 @@ export default function AddLocationModal({
 
         <View style={styles.fieldGroup}>
           <View style={styles.photoHeaderRow}>
-            <Text style={styles.fieldLabel}>Add Place Photos</Text>
-            <Text style={styles.photoCount}>
+            <Text style={[styles.fieldLabel, { color: colours.text_primary }]}>
+              Add Place Photos
+            </Text>
+            <Text style={[styles.photoCount, { color: colours.text_secondary }]}>
               {photos.length}/{MAX_PHOTOS}
             </Text>
           </View>
 
           {photos.length < MAX_PHOTOS && (
             <View style={styles.photoAddTile}>
-              <Pressable style={styles.photoAddButton} onPress={handleTakePhoto}>
+              <Pressable
+                style={[
+                  styles.photoAddButton,
+                  { borderColor: colours.border_1 },
+                ]}
+                onPress={handleTakePhoto}
+              >
                 <Camera color={colours.accent_1} size={20} />
               </Pressable>
-              <Pressable style={styles.photoAddButton} onPress={handlePickFromGallery}>
+              <Pressable
+                style={[
+                  styles.photoAddButton,
+                  { borderColor: colours.border_1 },
+                ]}
+                onPress={handlePickFromGallery}
+              >
                 <ImagePlus color={colours.accent_1} size={20} />
               </Pressable>
             </View>
           )}
 
           {photos.length > 0 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.photoScroll}
+            >
               {photos.map((uri) => (
                 <View key={uri} style={styles.photoThumbWrapper}>
                   <Image source={{ uri }} style={styles.photoThumb} />
                   <Pressable
-                    style={styles.photoRemoveButton}
+                    style={[
+                      styles.photoRemoveButton,
+                      { backgroundColor: colours.text_primary },
+                    ]}
                     onPress={() => handleRemovePhoto(uri)}
                     hitSlop={8}
                   >
-                    <X color={colours.secondary_bg} size={14} strokeWidth={3} />
+                    <X color={colours.card_bg} size={14} strokeWidth={3} />
                   </Pressable>
                 </View>
               ))}
@@ -295,20 +388,25 @@ export default function AddLocationModal({
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { borderTopColor: colours.border_1 }]}>
         <Pressable
-            style={[styles.detailButton, !canSubmit && styles.buttonDisabled]}
-            onPress={handleSubmitLocation}
-            disabled={!canSubmit}
+          style={[
+            styles.detailButton,
+            { backgroundColor: colours.accent_1 },
+            !canSubmit && { backgroundColor: colours.border_1 },
+          ]}
+          onPress={handleSubmitLocation}
+          disabled={!canSubmit}
         >
-            <Text
-                style={[
-                styles.detailButtonText,
-                !canSubmit && styles.buttonDisabledText,
-                ]}
-            >
-                {isSubmitting ? "Submitting..." : "Add Location"}
-            </Text>
+          <Text
+            style={[
+              styles.detailButtonText,
+              { color: colours.secondary_bg },
+              !canSubmit && { color: colours.text_secondary, opacity: 0.5 },
+            ]}
+          >
+            {isSubmitting ? "Submitting..." : "Add Location"}
+          </Text>
         </Pressable>
       </View>
     </ModalComponent>
@@ -319,14 +417,11 @@ const styles = StyleSheet.create({
   placeTitle: {
     fontSize: 22,
     fontWeight: "800",
-    color: colours.text_primary,
-    fontFamily: "System",
     marginTop: 4,
   },
   infoTextMuted: {
     fontSize: 13,
     fontWeight: "500",
-    color: colours.text_secondary,
     lineHeight: 18,
     marginTop: 6,
     marginBottom: 8,
@@ -343,12 +438,10 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 13,
     fontWeight: "700",
-    color: colours.text_primary,
     marginBottom: 8,
   },
   inputContainer: {
     borderWidth: 1.5,
-    borderColor: colours.border_1,
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -356,12 +449,10 @@ const styles = StyleSheet.create({
   input: {
     fontSize: 14,
     fontWeight: "500",
-    color: colours.text_primary,
     padding: 0,
   },
   reviewInputContainer: {
     borderWidth: 1.5,
-    borderColor: colours.border_1,
     borderRadius: 16,
     padding: 14,
   },
@@ -369,18 +460,15 @@ const styles = StyleSheet.create({
     minHeight: 100,
     fontSize: 14,
     fontWeight: "500",
-    color: colours.text_primary,
   },
   charCount: {
     alignSelf: "flex-end",
     fontSize: 11,
     fontWeight: "500",
-    color: colours.text_secondary,
     marginTop: 4,
   },
   footer: {
     borderTopWidth: 1,
-    borderTopColor: colours.border_1,
     marginHorizontal: -24,
     paddingHorizontal: 24,
     paddingTop: 16,
@@ -388,30 +476,20 @@ const styles = StyleSheet.create({
   },
   detailButton: {
     width: "100%",
-    backgroundColor: colours.accent_1,
     borderRadius: 12,
     paddingVertical: 14,
   },
   detailButtonText: {
-    color: colours.secondary_bg,
     width: "100%",
     fontWeight: "700",
     textAlign: "center",
     fontSize: 15,
-  },
-  buttonDisabled:{
-    backgroundColor: colours.border_1
-  },
-  buttonDisabledText: {
-    color: colours.border_2,
-    opacity: 0.5
   },
   locationPickerButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     borderWidth: 1.5,
-    borderColor: colours.border_1,
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -419,22 +497,20 @@ const styles = StyleSheet.create({
   locationPickerText: {
     fontSize: 14,
     fontWeight: "500",
-    color: colours.text_primary,
   },
   photoHeaderRow: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
   },
   photoCount: {
     fontSize: 12,
     fontWeight: "500",
-    color: colours.text_secondary,
   },
   photoScroll: {
     flexDirection: "row",
-    paddingTop: 16
+    paddingTop: 16,
   },
   photoThumbWrapper: {
     marginRight: 10,
@@ -444,7 +520,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 12,
-    backgroundColor: colours.border_1,
   },
   photoRemoveButton: {
     position: "absolute",
@@ -453,7 +528,6 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: colours.text_primary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -466,7 +540,6 @@ const styles = StyleSheet.create({
   photoAddButton: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: colours.border_1,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",

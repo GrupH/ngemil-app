@@ -1,3 +1,4 @@
+import { useTheme } from "@/context/ThemeContext";
 import { MapPin } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -7,14 +8,20 @@ type LocationPillProps = {
 };
 
 export default function LocationPill({ onPress, title }: LocationPillProps) {
+  const { colours } = useTheme();
+
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.pill, pressed && styles.pressedPill]}
+      style={({ pressed }) => [
+        styles.pill,
+        { backgroundColor: colours.border_2 },
+        pressed && styles.pressedPill,
+      ]}
     >
       <View style={styles.iconContainer}>
-        <MapPin color="#C6B6FC" fill="#C6B6FC" size={18} />
-        <View style={styles.iconHole} />
+        <MapPin color={colours.accent_2} fill={colours.accent_2} size={18} />
+        <View style={[styles.iconHole, { backgroundColor: colours.border_2 }]} />
       </View>
       <Text style={styles.title} ellipsizeMode="tail" numberOfLines={1}>
         {title}
@@ -49,7 +56,6 @@ const styles = StyleSheet.create({
     width: 4.5,
     height: 4.5,
     borderRadius: 2.25,
-    backgroundColor: "#726E83",
     top: 5.25,
     left: 6.75,
   },

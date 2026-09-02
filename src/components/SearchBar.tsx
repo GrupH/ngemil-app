@@ -1,4 +1,4 @@
-import { colours } from "@/constants/style";
+import { useTheme } from "@/context/ThemeContext";
 import { Search } from "lucide-react-native";
 import { StyleSheet, TextInput, View } from "react-native";
 
@@ -15,16 +15,26 @@ export default function SearchBar({
   onChangeText,
   onSubmit,
 }: SearchBarProps) {
+  const { colours } = useTheme();
+
   return (
-    <View style={styles.container}>
-      <Search color="#949FF1" size={20} />
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colours.input_bg,
+          borderColor: colours.border_1,
+        },
+      ]}
+    >
+      <Search color={colours.accent_1} size={20} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
         onSubmitEditing={onSubmit}
-        placeholderTextColor="#CBC6C6"
-        style={styles.input}
+        placeholderTextColor={colours.text_placeholder}
+        style={[styles.input, { color: colours.text_primary }]}
       />
     </View>
   );
@@ -34,10 +44,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colours.secondary_bg,
     width: "100%",
     borderRadius: 12,
-    borderColor: colours.border_1,
     borderWidth: 1,
     paddingHorizontal: 14,
     gap: 10,
@@ -46,7 +54,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: colours.text_primary,
     paddingVertical: 12,
   },
 });

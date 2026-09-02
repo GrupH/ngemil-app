@@ -1,5 +1,5 @@
 import Tag from "@/components/Tag";
-import { colours } from "@/constants/style";
+import { useTheme } from "@/context/ThemeContext";
 import { SpotProps } from "@/types/types";
 import { MapPin, Star } from "lucide-react-native";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
@@ -14,44 +14,58 @@ export default function NearbySpotCard({
   description,
   onPress,
 }: SpotProps) {
+  const { colours } = useTheme();
+
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.pressedCard]}
+      style={({ pressed }) => [
+        styles.card,
+        {
+          backgroundColor: colours.card_bg,
+          borderColor: colours.border_1,
+        },
+        pressed && styles.pressedCard,
+      ]}
     >
       {/* Top Image Section */}
       <View style={styles.imageContainer}>
-        {imageUrl === "" ? 
-          <ImagePlaceholder style={styles.image}/>:
-          <Image source={{ uri:  imageUrl }} style={styles.image} />
-        }
+        {imageUrl === "" ? (
+          <ImagePlaceholder style={styles.image} />
+        ) : (
+          <Image source={{ uri: imageUrl }} style={styles.image} />
+        )}
 
         {/* Floating Stats Pill */}
-        <View style={styles.statsPill}>
-          {rating > -1 &&
+        <View style={[styles.statsPill, { backgroundColor: colours.card_bg }]}>
+          {rating > -1 && (
             <>
-              <Star color="#949FF1" fill="#949FF1" size={11} />
-              <Text style={styles.statsText}>{rating.toFixed(1)}</Text>
+              <Star color={colours.accent_1} fill={colours.accent_1} size={11} />
+              <Text style={[styles.statsText, { color: colours.text_primary }]}>
+                {rating.toFixed(1)}
+              </Text>
 
-              <Text style={styles.bullet}>•</Text>
+              <Text style={[styles.bullet, { color: colours.text_secondary }]}>•</Text>
             </>
-          }
+          )}
 
           <View style={styles.iconContainer}>
-            <MapPin color="#949FF1" fill="#949FF1" size={11} />
-            <View style={styles.iconHole} />
+            <MapPin color={colours.accent_1} fill={colours.accent_1} size={11} />
+            <View style={[styles.iconHole, { backgroundColor: colours.card_bg }]} />
           </View>
-          <Text style={styles.statsText}>{distance}</Text>
+          <Text style={[styles.statsText, { color: colours.text_primary }]}>
+            {distance}
+          </Text>
         </View>
       </View>
 
       {/* Bottom Content Section */}
       <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={[styles.title, { color: colours.text_primary }]} numberOfLines={1}>
           {title}
         </Text>
 
-        {/* Tags Row - Slice to 2 tags to prevent wrap height misalignment */}
+        {/* Tags Row */}
         <View style={styles.tagRow}>
           {tags.slice(0, 2).map((tag, index) => (
             <Tag key={index} text={tag.name} small />
@@ -64,9 +78,7 @@ export default function NearbySpotCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 12,
-    borderColor: "#EDF0FE",
     borderWidth: 2,
     overflow: "hidden",
     shadowColor: "#0A0B1A",
@@ -74,7 +86,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 10,
     elevation: 3,
-    flex:1
+    flex: 1,
   },
   pressedCard: {
     opacity: 0.95,
@@ -92,7 +104,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 8,
     right: 8,
-    backgroundColor: "#FFFFFF",
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 8,
@@ -108,11 +119,9 @@ const styles = StyleSheet.create({
   statsText: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#5A5869",
   },
   bullet: {
     fontSize: 10,
-    color: "#8B889E",
     marginHorizontal: 1,
   },
   iconContainer: {
@@ -125,7 +134,6 @@ const styles = StyleSheet.create({
     width: 2.75,
     height: 2.75,
     borderRadius: 1.375,
-    backgroundColor: "#FFFFFF",
     top: 3.2,
     left: 4.125,
   },
@@ -136,15 +144,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: "800",
-    color: colours.text_primary,
   },
   tagRow: {
     flexDirection: "row",
     gap: 4,
-  },
-  description: {
-    fontSize: 12,
-    color: colours.text_secondary,
-    lineHeight: 16,
   },
 });

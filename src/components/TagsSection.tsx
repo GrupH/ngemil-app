@@ -1,5 +1,5 @@
 import Tag from "@/components/Tag";
-import { colours } from "@/constants/style";
+import { useTheme } from "@/context/ThemeContext";
 import { Plus } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -14,9 +14,11 @@ export default function TagsSection({
   isAdd = false,
   openModal,
 }: TagsSectionProps) {
+  const { colours } = useTheme();
+
   return (
     <View style={styles.sectionContainer}>
-      <Text style={styles.sectionHeading}>TAGS</Text>
+      <Text style={[styles.sectionHeading, { color: colours.heading }]}>TAGS</Text>
       <View style={styles.tagRow}>
         {tags.map((tag) => (
           <Tag key={tag.name} text={tag.name} count={tag.count} />
@@ -26,13 +28,14 @@ export default function TagsSection({
           <Pressable
             style={({ pressed }) => [
               styles.addTagButton,
+              { borderColor: colours.heading },
               pressed && styles.addTagButtonPressed,
             ]}
             onPress={openModal}
             hitSlop={6}
           >
-            <Plus color="#8B889E" size={12} />
-            <Text style={styles.addTagText}>Add</Text>
+            <Plus color={colours.heading} size={12} />
+            <Text style={[styles.addTagText, { color: colours.heading }]}>Add</Text>
           </Pressable>
         )}
       </View>
@@ -47,7 +50,6 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: 12,
     fontWeight: "800",
-    color: colours.heading,
     letterSpacing: 1,
     marginBottom: 12,
   },
@@ -67,7 +69,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colours.heading,
     borderStyle: "dashed",
     backgroundColor: "transparent",
   },
@@ -77,6 +78,5 @@ const styles = StyleSheet.create({
   addTagText: {
     fontSize: 12,
     fontWeight: "700",
-    color: colours.heading,
   },
 });

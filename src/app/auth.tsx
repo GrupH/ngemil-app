@@ -1,5 +1,6 @@
 import BackButton from "@/components/BackButton";
 import { colours } from "@/constants/style";
+import { useTheme } from "@/context/ThemeContext";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "expo-router";
 import { Eye, EyeOff } from "lucide-react-native";
@@ -19,6 +20,7 @@ import {
 
 export default function AuthScreen() {
   const router = useRouter();
+  const { colours } = useTheme();
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -47,7 +49,7 @@ export default function AuthScreen() {
     setError("");
 
     const cleanEmail = email.trim();
-    const cleanUsername = username.trim()
+    const cleanUsername = username.trim();
 
     const { data, error } = isLogin
       ? await supabase.auth.signInWithPassword({ email: cleanEmail, password })
@@ -84,7 +86,7 @@ export default function AuthScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colours.primary_bg }]}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -103,8 +105,10 @@ export default function AuthScreen() {
               }}
             />
           </View>
-          <Text style={styles.title}>{isLogin ? "LOGIN" : "SIGN UP"}</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: colours.accent_1 }]}>
+            {isLogin ? "LOGIN" : "SIGN UP"}
+          </Text>
+          <Text style={[styles.subtitle, { color: colours.text_secondary }]}>
             {isLogin
               ? "Please sign in to proceed."
               : "Please create an account to proceed."}
@@ -129,7 +133,14 @@ export default function AuthScreen() {
             <Text style={styles.label}>Email</Text>
 
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colours.input_bg,
+                  color: colours.text_primary,
+                  borderColor: colours.border_1,
+                },
+              ]}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -165,7 +176,11 @@ export default function AuthScreen() {
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
+            style={[
+              styles.button,
+              { backgroundColor: colours.accent_1, borderColor: colours.border_1 },
+              loading && styles.buttonDisabled,
+            ]}
             onPress={handleSubmit}
             disabled={loading}
           >
@@ -180,9 +195,9 @@ export default function AuthScreen() {
         </View>
 
         <TouchableOpacity style={styles.toggleRow} onPress={handleToggle}>
-          <Text style={styles.toggleText}>
+          <Text style={[styles.toggleText, { color: colours.text_secondary }]}>
             {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <Text style={styles.toggleLink}>
+            <Text style={[styles.toggleLink, { color: colours.accent_1 }]}>
               {isLogin ? "Sign Up" : "Sign In"}
             </Text>
           </Text>
@@ -195,7 +210,6 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colours.primary_bg,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -210,13 +224,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: "800",
-    color: colours.accent_1,
     letterSpacing: 1,
     marginBottom: 6,
   },
   subtitle: {
     fontSize: 14,
-    color: colours.text_secondary,
     marginBottom: 48,
   },
   fields: {
@@ -225,17 +237,14 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    color: colours.text_secondary,
     marginBottom: 6,
     marginTop: 12,
   },
   input: {
-    backgroundColor: colours.secondary_bg,
     borderRadius: 12,
     padding: 14,
     color: colours.text_secondary,
     borderWidth: 1,
-    borderColor: colours.border_1,
   },
   showPassword:{
     position: "absolute",
@@ -244,13 +253,11 @@ const styles = StyleSheet.create({
     zIndex: 50,
   },
   button: {
-    backgroundColor: colours.accent_1,
     borderRadius: 12,
     padding: 16,
     alignItems: "center",
     marginTop: 16,
     borderWidth: 1,
-    borderColor: colours.border_1,
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -272,11 +279,10 @@ const styles = StyleSheet.create({
   },
   toggleText: {
     fontSize: 14,
-    color: colours.text_secondary,
     fontWeight: "600",
   },
   toggleLink: {
-    color: colours.accent_1,
     fontWeight: "700",
   },
 });
+
