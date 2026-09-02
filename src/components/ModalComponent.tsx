@@ -1,22 +1,23 @@
+import { useTheme } from "@/context/ThemeContext";
 import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
+    forwardRef,
+    useEffect,
+    useImperativeHandle,
+    useRef,
+    useState,
 } from "react";
 import {
-  Animated,
-  Dimensions,
-  Keyboard,
-  KeyboardAvoidingView,
-  Modal,
-  PanResponder,
-  Platform,
-  Pressable,
-  StyleSheet,
-  View,
-  type ViewStyle,
+    Animated,
+    Dimensions,
+    Keyboard,
+    KeyboardAvoidingView,
+    Modal,
+    PanResponder,
+    Platform,
+    Pressable,
+    StyleSheet,
+    View,
+    type ViewStyle,
 } from "react-native";
 
 type ModalProps = {
@@ -59,6 +60,7 @@ const ModalComponent = forwardRef<ModalHandle, ModalProps>(
     },
     ref
   ) {
+  const { colours } = useTheme();
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
@@ -152,6 +154,7 @@ const ModalComponent = forwardRef<ModalHandle, ModalProps>(
     <View
       style={[
         styles.modalContent,
+        { backgroundColor: colours.modal_bg },
         { maxHeight },
         Platform.OS === "android" && keyboardAvoiding
           ? { marginBottom: androidKeyboardHeight }
@@ -160,7 +163,7 @@ const ModalComponent = forwardRef<ModalHandle, ModalProps>(
       ]}
     >
       <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
-        <View style={styles.dragHandle} />
+        <View style={[styles.dragHandle, { backgroundColor: colours.drag_handle }]} />
       </View>
 
       {children}
@@ -246,4 +249,4 @@ const styles = StyleSheet.create({
     borderRadius: 2.5,
     backgroundColor: "#E5E5E5",
   },
-});
+});

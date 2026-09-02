@@ -7,8 +7,8 @@ import ProfileButton from "@/components/ProfileButton";
 import SearchBar from "@/components/SearchBar";
 import HomeSkeleton from "@/components/Skeleton/HomeSkeleton";
 import SpotOfTheDayCard from "@/components/SpotOfTheDayCard";
-import { colours } from "@/constants/style";
 import { useNearbyLocationContext } from "@/context/NearbyLocationContext";
+import { useTheme } from "@/context/ThemeContext";
 import { useLocation } from "@/hooks/useLocation";
 import { getLocationById } from "@/lib/locations";
 import { PlaceData } from "@/types/types";
@@ -21,6 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
 const App = () => {
+  const { colours } = useTheme();
   const [search, setSearch] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceData | null>(null);
@@ -30,7 +31,7 @@ const App = () => {
   const handleOpenPlace = async (place: PlaceData) => {
     setSelectedPlace(place);
     setModalVisible(true);
-    const { data, error } = await getLocationById(place.id); // TODO : Make a nerfed version of "getLocationById" to be less detailed with the fetch for modal
+    const { data, error } = await getLocationById(place.id);
 
     if (!error && data) {
       const images = data.location_images ?? [];
@@ -54,12 +55,12 @@ const App = () => {
 
   const {nearbyLocations, isLoading} = useNearbyLocationContext()
 
-  const spotOfTheDay = nearbyLocations[0]; // TODO
+  const spotOfTheDay = nearbyLocations[0];
 
   if (isLoading) return <HomeSkeleton />;
 
   return (
-    <SafeAreaView style={styles.page}>
+    <SafeAreaView style={[styles.page, { backgroundColor: colours.primary_bg }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
@@ -88,7 +89,7 @@ const App = () => {
         {/* Spot of the Day Section */}
         {spotOfTheDay && (
           <View style={styles.spotSection}>
-            <Text style={styles.sectionTitle}>SPOT OF THE DAY</Text>
+            <Text style={[styles.sectionTitle, { color: colours.heading }]}>SPOT OF THE DAY</Text>
             <SpotOfTheDayCard
               imageUrl={spotOfTheDay.imageUrl}
               title={spotOfTheDay.title}
@@ -103,7 +104,7 @@ const App = () => {
 
         {/* Nearby Spots Section */}
         <View style={styles.nearbySection}>
-          <Text style={styles.sectionTitle}>NEARBY</Text>
+          <Text style={[styles.sectionTitle, { color: colours.heading }]}>NEARBY</Text>
           {nearbyLocations && nearbyLocations.length > 0 ? (
             <View style={styles.gridContainer}>
               {nearbyLocations.map((spot: PlaceData) => (
@@ -144,7 +145,6 @@ export default App;
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    backgroundColor: colours.primary_bg,
   },
   scrollContainer: {
     paddingHorizontal: 20,
@@ -156,17 +156,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-  },
-  mapCard: {
-    height: 240,
-    backgroundColor: colours.border_1,
-    borderRadius: 12,
-    borderColor: "#EDF0FE",
-    borderWidth: 2,
-    marginTop: 24,
-    padding: 16,
-    overflow: "hidden",
-    position: "relative",
   },
   searchBarContainer: {
     marginTop: 24,
@@ -183,7 +172,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: colours.heading,
     letterSpacing: 0.5,
   },
   gridContainer: {
@@ -195,24 +183,5 @@ const styles = StyleSheet.create({
   gridColumn: {
     width: "47.5%",
   },
-  openMapButton: {
-    position: "absolute",
-    bottom: 16,
-    right: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 100,
-    backgroundColor: colours.accent_1,
-    borderWidth: 2,
-    borderColor: colours.border_1,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    gap: 6,
-  },
-  openMapButtonText: {
-    color: colours.secondary_bg,
-    fontWeight: "800",
-  },
 });
+
