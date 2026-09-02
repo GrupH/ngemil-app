@@ -13,19 +13,22 @@ import { useLocation } from "@/hooks/useLocation";
 import { getLocationById } from "@/lib/locations";
 import { PlaceData } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
 const App = () => {
   const [search, setSearch] = useState("");
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceData | null>(null);
+  const [refreshing, setRefreshing] = useState<boolean>(false)
   const router = useRouter();
   const { name: locationName, coords } = useLocation();
+  const queryClient = useQueryClient()
 
   const handleOpenPlace = async (place: PlaceData) => {
     setSelectedPlace(place);
@@ -52,6 +55,23 @@ const App = () => {
     }
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true)
+
+    const latKey = coords ? Math.round(coords.latitude * 200) / 200 : null;
+    const lngKey = coords ? Math.round(coords.longitude * 200) / 200 : null;
+
+    try{
+      await queryClient.refetchQueries({
+        queryKey: ["nearbyLocations", latKey, lngKey],
+      });
+    } catch(err){
+      console.error(err) // TODO: REPLACE WITH TOAST
+    } finally {
+      setRefreshing(false)
+    }
+  }
+
   const {nearbyLocations, isLoading} = useNearbyLocationContext()
 
   const spotOfTheDay = nearbyLocations[0]; // TODO
@@ -63,6 +83,7 @@ const App = () => {
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colours.accent_1]}/>}
       >
         {/* Header Section */}
         <View style={styles.headerRow}>
