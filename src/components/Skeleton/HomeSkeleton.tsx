@@ -69,8 +69,30 @@ const NearbyCardSkeleton = () => {
   );
 };
 
-const HomeSkeleton = () => {
+const HomeSkeleton = ({fullPage}:{fullPage:boolean}) => {
   const { colours } = useTheme();
+
+  if(!fullPage) return (
+    <>
+      {/* Spot of the Day */}
+      <View style={skeletonStyles.section}>
+        <SectionLabelBone />
+        <SpotOfTheDaySkeleton />
+      </View>
+
+      {/* Nearby Grid */}
+      <View style={skeletonStyles.section}>
+        <SectionLabelBone />
+        <View style={skeletonStyles.gridContainer}>
+          {[0, 1, 2, 3].map((i) => (
+            <View key={i} style={skeletonStyles.gridColumn}>
+              <NearbyCardSkeleton />
+            </View>
+          ))}
+        </View>
+      </View>
+    </>
+  )
 
   return (
     <SafeAreaView style={[skeletonStyles.page, { backgroundColor: colours.primary_bg }]}>

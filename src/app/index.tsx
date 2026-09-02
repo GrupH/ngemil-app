@@ -77,7 +77,7 @@ const App = () => {
 
   const spotOfTheDay = nearbyLocations[0];
 
-  if (isLoading) return <HomeSkeleton />;
+  if (isLoading && !coords) return <HomeSkeleton fullPage={true}/>;
 
   return (
     <SafeAreaView style={[styles.page, { backgroundColor: colours.primary_bg }]}>
@@ -107,48 +107,52 @@ const App = () => {
           />
         </View>
 
-        {/* Spot of the Day Section */}
-        {spotOfTheDay && (
-          <View style={styles.spotSection}>
-            <Text style={[styles.sectionTitle, { color: colours.heading }]}>SPOT OF THE DAY</Text>
-            <SpotOfTheDayCard
-              imageUrl={spotOfTheDay.imageUrl}
-              title={spotOfTheDay.title}
-              rating={spotOfTheDay.rating}
-              distance={spotOfTheDay.distance}
-              tags={spotOfTheDay.tags}
-              description={spotOfTheDay.description}
-              onPress={() => handleOpenPlace(spotOfTheDay)}
-            />
-          </View>
-        )}
-
-        {/* Nearby Spots Section */}
-        <View style={styles.nearbySection}>
-          <Text style={[styles.sectionTitle, { color: colours.heading }]}>NEARBY</Text>
-          {nearbyLocations && nearbyLocations.length > 0 ? (
-            <View style={styles.gridContainer}>
-              {nearbyLocations.map((spot: PlaceData) => (
-                <View key={spot.id} style={styles.gridColumn}>
-                  <NearbySpotCard
-                    imageUrl={spot.imageUrl}
-                    title={spot.title}
-                    rating={spot.rating}
-                    distance={spot.distance}
-                    tags={spot.tags}
-                    description={spot.description}
-                    onPress={() => handleOpenPlace(spot)}
-                  />
-                </View>
-              ))}
+        {isLoading ? <HomeSkeleton fullPage={false} /> :
+        <>
+          {/* Spot of the Day Section */}
+          {spotOfTheDay && (
+            <View style={styles.spotSection}>
+              <Text style={[styles.sectionTitle, { color: colours.heading }]}>SPOT OF THE DAY</Text>
+              <SpotOfTheDayCard
+                imageUrl={spotOfTheDay.imageUrl}
+                title={spotOfTheDay.title}
+                rating={spotOfTheDay.rating}
+                distance={spotOfTheDay.distance}
+                tags={spotOfTheDay.tags}
+                description={spotOfTheDay.description}
+                onPress={() => handleOpenPlace(spotOfTheDay)}
+              />
             </View>
-          ) : (
-            <NoResults
-              title="Nothing nearby the selected area"
-              subtitle="Try widening your search radius or check back later."
-            />
           )}
-        </View>
+
+          {/* Nearby Spots Section */}
+          <View style={styles.nearbySection}>
+            <Text style={[styles.sectionTitle, { color: colours.heading }]}>NEARBY</Text>
+            {nearbyLocations && nearbyLocations.length > 0 ? (
+              <View style={styles.gridContainer}>
+                {nearbyLocations.map((spot: PlaceData) => (
+                  <View key={spot.id} style={styles.gridColumn}>
+                    <NearbySpotCard
+                      imageUrl={spot.imageUrl}
+                      title={spot.title}
+                      rating={spot.rating}
+                      distance={spot.distance}
+                      tags={spot.tags}
+                      description={spot.description}
+                      onPress={() => handleOpenPlace(spot)}
+                    />
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <NoResults
+                title="Nothing nearby the selected area"
+                subtitle="Try widening your search radius or check back later."
+              />
+            )}
+          </View>
+        </>
+        }
       </ScrollView>
 
       {/* Place Detail Modal Popup */}
