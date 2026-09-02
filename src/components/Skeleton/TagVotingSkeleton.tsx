@@ -1,4 +1,4 @@
-import { colours } from "@/constants/style";
+import { useTheme } from "@/context/ThemeContext";
 import { forwardRef } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import ModalComponent, { type ModalHandle } from "../ModalComponent";
@@ -15,13 +15,15 @@ const TagVotingSkeleton = forwardRef<
   ModalHandle,
   TagVotingModalSkeletonProps
 >(({ modalVisible, setModalVisible }, ref) => {
+  const { colours } = useTheme();
+
   return (
     <ModalComponent
       ref={ref}
       visible={modalVisible}
       onClose={() => setModalVisible(false)}
     >
-      <View style={styles.infoContainer}>
+      <View style={[styles.infoContainer, { borderBottomColor: colours.border_1 }]}>
         <Bone width={160} height={22} borderRadius={4} />
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
@@ -45,7 +47,7 @@ const TagVotingSkeleton = forwardRef<
           </View>
         </ScrollView>
       </View>
-      <View style={styles.footer}>
+      <View style={[styles.footer, { borderTopColor: colours.border_1 }]}>
         <Bone width="100%" height={48} borderRadius={12} />
       </View>
     </ModalComponent>
@@ -59,7 +61,6 @@ export default TagVotingSkeleton;
 const styles = StyleSheet.create({
   infoContainer: {
     borderBottomWidth: 1,
-    borderBottomColor: colours.border_1,
     marginHorizontal: -24,
     paddingHorizontal: 24,
     marginTop: 16,
@@ -92,7 +93,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     borderTopWidth: 1,
-    borderTopColor: colours.border_1,
     marginHorizontal: -24,
     paddingHorizontal: 24,
     paddingTop: 16,

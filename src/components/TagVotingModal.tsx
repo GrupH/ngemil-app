@@ -1,4 +1,4 @@
-import { colours } from "@/constants/style";
+import { useTheme } from "@/context/ThemeContext";
 import { useLocation } from "@/hooks/useLocation";
 import { getAllTags, getUserTagVotesForLocation, unvoteTag, voteTag } from "@/lib/tags";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -31,38 +31,32 @@ export default function TagVotingModal({
   setModalVisible,
 }: TagVotingModalProps) {
   const modalRef = useRef<ModalHandle>(null);
+  const { colours } = useTheme();
 
   const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { coords } = useLocation()
+  const { coords } = useLocation();
 
-  const { data: allTags, isLoading} = useQuery({
+  const { data: allTags, isLoading } = useQuery({
     queryKey: ["allTags"],
     queryFn: async () => {
-      const { data: tags, error: tagsError } = await getAllTags()
-
+      const { data: tags, error: tagsError } = await getAllTags();
       if (tagsError) throw tagsError;
-
       return tags;
-    }
-  })
+    },
+  });
 
   const { data: tagsData, isLoading: locationTagsLoading } = useQuery({
     queryKey: ["locationTags", id],
     queryFn: async () => {
+      if (!allTags) return [];
 
-      if(!allTags) return []
-      
-
-      //TODO (optional): add tag colors in supabase
-
-      const { data: votes, error: votesError } = await getUserTagVotesForLocation(id)
-
+      const { data: votes, error: votesError } = await getUserTagVotesForLocation(id);
       if (votesError) throw votesError;
 
       const votedTagIds = new Set(votes.map((v) => v.tag_id));
 
-      return allTags.map(tag => ({
+      return allTags.map((tag) => ({
         id: tag.id,
         label: tag.tag,
         voted: votedTagIds.has(tag.id),
@@ -86,9 +80,7 @@ export default function TagVotingModal({
   const toggleVote = (id: string) => {
     setTags((prev) =>
       prev.map((tag) =>
-        tag.id === id
-          ? { ...tag, voted: !tag.voted }
-          : tag
+        tag.id === id ? { ...tag, voted: !tag.voted } : tag
       )
     );
   };
@@ -97,7 +89,7 @@ export default function TagVotingModal({
     const currentVotedIds = new Set(tags.filter((t) => t.voted).map((t) => t.id));
     const toAdd = [...currentVotedIds].filter((tagId) => !initialVotedIds.has(tagId));
     const toRemove = [...initialVotedIds].filter((tagId) => !currentVotedIds.has(tagId));
-      return { toAdd, toRemove };
+    return { toAdd, toRemove };
   }, [tags, initialVotedIds]);
 
   const hasChanges = voteDiff.toAdd.length > 0 || voteDiff.toRemove.length > 0;
@@ -122,19 +114,21 @@ export default function TagVotingModal({
       const failed = results.find((r) => r.error);
       if (failed) throw failed.error;
 
-      queryClient.invalidateQueries({ queryKey: ["nearbyLocations", coords?.latitude, coords?.longitude] });
+      queryClient.invalidateQueries({
+        queryKey: ["nearbyLocations", coords?.latitude, coords?.longitude],
+      });
       queryClient.invalidateQueries({ queryKey: ["locationTags", id] });
       queryClient.invalidateQueries({ queryKey: ["locationById", id] });
       modalRef.current?.close();
     } catch (err) {
       console.error("Failed to submit tag votes:", err);
-      //TODO: toast for success/error
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if(isLoading || locationTagsLoading || !allTags || allTags.length === 0) return <TagVotingSkeleton modalVisible={modalVisible} setModalVisible={setModalVisible}/>
+  if (isLoading || locationTagsLoading || !allTags || allTags.length === 0)
+    return <TagVotingSkeleton modalVisible={modalVisible} setModalVisible={setModalVisible} />;
 
   return (
     <ModalComponent
@@ -142,25 +136,24 @@ export default function TagVotingModal({
       visible={modalVisible}
       onClose={() => setModalVisible(false)}
     >
-      {/* Main info section (not scrollable) */}
-      <View style={styles.infoContainer}>
-        {/* Title */}
-        <Text style={styles.placeTitle}>Vote for Tags</Text>
+      <View style={[styles.infoContainer, { borderBottomColor: colours.border_1 }]}>
+        <Text style={[styles.placeTitle, { color: colours.text_primary }]}>
+          Vote for Tags
+        </Text>
 
-        {/* Subtitle / helper row */}
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
             <CheckCircle2 color={colours.accent_1} size={16} />
-            <Text style={styles.infoTextBold}>{votedCount} selected</Text>
+            <Text style={[styles.infoTextBold, { color: colours.text_primary }]}>
+              {votedCount} selected
+            </Text>
           </View>
-          <Text style={styles.infoTextMuted}>
+          <Text style={[styles.infoTextMuted, { color: colours.text_secondary }]}>
             Tap a tag to vote for how well it fits this spot
           </Text>
         </View>
       </View>
 
-      {/* Scrollable tag list, wrapped in a View rather than being a direct
-          child of the modal's content Pressable */}
       <View style={styles.scrollWrapper}>
         <ScrollView
           style={styles.scrollArea}
@@ -173,7 +166,14 @@ export default function TagVotingModal({
                 key={tag.id}
                 style={({ pressed }) => [
                   styles.chip,
-                  tag.voted && styles.chipSelected,
+                  {
+                    backgroundColor: colours.input_bg,
+                    borderColor: colours.border_1,
+                  },
+                  tag.voted && {
+                    borderColor: colours.accent_1,
+                    backgroundColor: colours.accent_1,
+                  },
                   pressed && styles.chipPressed,
                 ]}
                 onPress={() => toggleVote(tag.id)}
@@ -188,7 +188,8 @@ export default function TagVotingModal({
                 <Text
                   style={[
                     styles.chipText,
-                    tag.voted && styles.chipTextSelected,
+                    { color: colours.text_primary },
+                    tag.voted && { color: colours.secondary_bg },
                   ]}
                 >
                   {tag.label}
@@ -199,14 +200,26 @@ export default function TagVotingModal({
         </ScrollView>
       </View>
 
-      {/* Footer action */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { borderTopColor: colours.border_1 }]}>
         <Pressable
-          style={[styles.detailButton, (!hasChanges || isSubmitting) && styles.buttonDisabled]}
+          style={[
+            styles.detailButton,
+            { backgroundColor: colours.accent_1 },
+            (!hasChanges || isSubmitting) && { backgroundColor: colours.border_1 },
+          ]}
           onPress={handleSubmitVotes}
           disabled={!hasChanges || isSubmitting}
         >
-          <Text style={[styles.detailButtonText, (!hasChanges || isSubmitting) && styles.buttonDisabledText]}>
+          <Text
+            style={[
+              styles.detailButtonText,
+              { color: colours.secondary_bg },
+              (!hasChanges || isSubmitting) && {
+                color: colours.text_secondary,
+                opacity: 0.5,
+              },
+            ]}
+          >
             {isSubmitting ? "Submitting..." : "Submit Votes"}
           </Text>
         </Pressable>
@@ -218,7 +231,6 @@ export default function TagVotingModal({
 const styles = StyleSheet.create({
   infoContainer: {
     borderBottomWidth: 1,
-    borderBottomColor: colours.border_1,
     marginHorizontal: -24,
     paddingHorizontal: 24,
     marginTop: 16,
@@ -228,8 +240,6 @@ const styles = StyleSheet.create({
   placeTitle: {
     fontSize: 22,
     fontWeight: "800",
-    color: colours.text_primary,
-    fontFamily: "System",
   },
   infoRow: {
     marginTop: 10,
@@ -244,12 +254,10 @@ const styles = StyleSheet.create({
   infoTextBold: {
     fontSize: 14,
     fontWeight: "700",
-    color: colours.text_primary,
   },
   infoTextMuted: {
     fontSize: 13,
     fontWeight: "500",
-    color: colours.text_secondary,
     lineHeight: 18,
   },
   scrollWrapper: {
@@ -270,16 +278,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1.5,
-    borderColor: colours.border_1,
-    backgroundColor: colours.primary_bg,
     borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 14,
     gap: 6,
-  },
-  chipSelected: {
-    borderColor: colours.accent_1,
-    backgroundColor: colours.accent_1,
   },
   chipPressed: {
     opacity: 0.7,
@@ -290,55 +292,22 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 14,
     fontWeight: "600",
-    color: colours.text_primary,
-  },
-  chipTextSelected: {
-    color: colours.secondary_bg,
-  },
-  countBadge: {
-    backgroundColor: colours.border_1,
-    borderRadius: 10,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    minWidth: 22,
-    alignItems: "center",
-  },
-  countBadgeSelected: {
-    backgroundColor: "rgba(255, 255, 255, 0.25)",
-  },
-  countText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: colours.text_secondary,
-  },
-  countTextSelected: {
-    color: colours.secondary_bg,
   },
   footer: {
     borderTopWidth: 1,
-    borderTopColor: colours.border_1,
     marginHorizontal: -24,
     paddingHorizontal: 24,
     paddingTop: 16,
   },
   detailButton: {
     width: "100%",
-    backgroundColor: colours.accent_1,
     borderRadius: 12,
     paddingVertical: 14,
   },
   detailButtonText: {
-    color: colours.secondary_bg,
     width: "100%",
     fontWeight: "700",
     textAlign: "center",
     fontSize: 15,
   },
-  buttonDisabled:{
-    backgroundColor: colours.border_1
-  },
-  buttonDisabledText: {
-    color: colours.border_2,
-    opacity: 0.5
-  }
 });

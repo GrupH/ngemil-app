@@ -1,5 +1,5 @@
 import Tag from "@/components/Tag";
-import { colours } from "@/constants/style";
+import { useTheme } from "@/context/ThemeContext";
 import { SpotProps } from "@/types/types";
 import { MapPin, Star } from "lucide-react-native";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
@@ -14,40 +14,53 @@ export default function SpotOfTheDayCard({
   description,
   onPress,
 }: SpotProps) {
+  const { colours } = useTheme();
+
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.pressedCard]}
+      style={({ pressed }) => [
+        styles.card,
+        {
+          backgroundColor: colours.card_bg,
+          borderColor: colours.border_1,
+        },
+        pressed && styles.pressedCard,
+      ]}
     >
       {/* Top Image Section */}
       <View style={styles.imageContainer}>
-
-        {imageUrl === "" ? 
-          <ImagePlaceholder style={styles.image}/>:
+        {imageUrl === "" ? (
+          <ImagePlaceholder style={styles.image} />
+        ) : (
           <Image source={{ uri: imageUrl }} style={styles.image} />
-        }
+        )}
 
         {/* Floating Stats Pill */}
-        <View style={styles.statsPill}>
-          {rating > -1 &&
-          <>
-            <Star color="#949FF1" fill="#949FF1" size={14} />
-            <Text style={styles.statsText}>{rating.toFixed(1)}</Text>
-            <Text style={styles.bullet}>•</Text>
-          </>
-          }
+        <View style={[styles.statsPill, { backgroundColor: colours.card_bg }]}>
+          {rating > -1 && (
+            <>
+              <Star color={colours.accent_1} fill={colours.accent_1} size={14} />
+              <Text style={[styles.statsText, { color: colours.text_primary }]}>
+                {rating.toFixed(1)}
+              </Text>
+              <Text style={[styles.bullet, { color: colours.text_secondary }]}>•</Text>
+            </>
+          )}
 
           <View style={styles.iconContainer}>
-            <MapPin color="#949FF1" fill="#949FF1" size={14} />
-            <View style={styles.iconHole} />
+            <MapPin color={colours.accent_1} fill={colours.accent_1} size={14} />
+            <View style={[styles.iconHole, { backgroundColor: colours.card_bg }]} />
           </View>
-          <Text style={styles.statsText}>{distance}</Text>
+          <Text style={[styles.statsText, { color: colours.text_primary }]}>
+            {distance}
+          </Text>
         </View>
       </View>
 
       {/* Bottom Content Section */}
       <View style={styles.content}>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={[styles.title, { color: colours.text_primary }]}>{title}</Text>
 
         {/* Tags Row */}
         <View style={styles.tagRow}>
@@ -56,7 +69,9 @@ export default function SpotOfTheDayCard({
           ))}
         </View>
 
-        <Text style={styles.description}>{description}</Text>
+        <Text style={[styles.description, { color: colours.text_secondary }]}>
+          {description}
+        </Text>
       </View>
     </Pressable>
   );
@@ -64,9 +79,7 @@ export default function SpotOfTheDayCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 12,
-    borderColor: "#EDF0FE",
     borderWidth: 2,
     overflow: "hidden",
     shadowColor: "#000",
@@ -91,7 +104,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 14,
     right: 14,
-    backgroundColor: "#FFFFFF",
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 10,
@@ -102,11 +114,9 @@ const styles = StyleSheet.create({
   statsText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#5A5869",
   },
   bullet: {
     fontSize: 12,
-    color: "#8B889E",
     marginHorizontal: 2,
   },
   iconContainer: {
@@ -119,7 +129,6 @@ const styles = StyleSheet.create({
     width: 3.5,
     height: 3.5,
     borderRadius: 1.75,
-    backgroundColor: "#FFFFFF",
     top: 4.1,
     left: 5.25,
   },
@@ -130,7 +139,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "800",
-    color: colours.text_primary,
   },
   tagRow: {
     flexDirection: "row",
@@ -139,7 +147,6 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    color: colours.text_secondary,
     lineHeight: 20,
   },
 });

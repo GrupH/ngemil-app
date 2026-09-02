@@ -1,7 +1,7 @@
 import AddLocationModal from "@/components/AddLocationModal";
 import BackButton from "@/components/BackButton";
-import { colours } from "@/constants/style";
 import { useNearbyLocationContext } from "@/context/NearbyLocationContext";
+import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/hooks/auth";
 import { useLocation } from "@/hooks/useLocation";
 import { CoordsType } from "@/types/types";
@@ -15,27 +15,27 @@ Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
 export default function MapPage() {
   const { fullName: locationName, coords } = useLocation();
-  const { user } = useAuth()
-  const router = useRouter()
+  const { user } = useAuth();
+  const router = useRouter();
+  const { colours, isDarkMode } = useTheme();
 
-  const { nearbyLocations, isLoading } = useNearbyLocationContext()
+  const { nearbyLocations, isLoading } = useNearbyLocationContext();
 
-  const [currLocation, setCurrLocation] = useState<string>(locationName)
-  const [currCoords, setCurrCoords] = useState<CoordsType | null>(coords)
-  const [modalVisible, setModalVisible] = useState<boolean>(false)
+  const [currLocation, setCurrLocation] = useState<string>(locationName);
+  const [currCoords, setCurrCoords] = useState<CoordsType | null>(coords);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
 
-  // NEW: picking mode state
   const [isPickingLocation, setIsPickingLocation] = useState(false);
   const [pickerCenter, setPickerCenter] = useState<CoordsType | null>(null);
 
   useEffect(() => {
-    setCurrLocation(locationName)
-    setCurrCoords(coords)
-  }, [locationName, coords])
+    setCurrLocation(locationName);
+    setCurrCoords(coords);
+  }, [locationName, coords]);
 
   function handleStartPicking(startCoords: CoordsType) {
     setPickerCenter(startCoords);
-    setModalVisible(false);      // hide modal, reveal map underneath
+    setModalVisible(false);
     setIsPickingLocation(true);
   }
 
@@ -47,7 +47,7 @@ export default function MapPage() {
 
   function handleConfirmPick() {
     setIsPickingLocation(false);
-    setModalVisible(true);       // pickerCenter gets passed back in as coords
+    setModalVisible(true);
   }
 
   function handleCancelPick() {
@@ -56,29 +56,48 @@ export default function MapPage() {
   }
 
   return (
-    <View style={styles.page}>
+    <View style={[styles.page, { backgroundColor: colours.primary_bg }]}>
       {!isPickingLocation && (
         <View style={styles.headerContainer}>
-          <BackButton onPress={() => router.canGoBack() ? router.back() : router.replace("/")} type="Back"/>
-          <View style={styles.inputContainer}>
-            <Search color="#949FF1" size={20} />
-            <TextInput placeholderTextColor="#CBC6C6" style={styles.input} value={currLocation}/>
+          <BackButton
+            onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+            type="Back"
+          />
+          <View
+            style={[
+              styles.inputContainer,
+              {
+                backgroundColor: colours.input_bg,
+                borderColor: colours.border_1,
+              },
+            ]}
+          >
+            <Search color={colours.accent_1} size={20} />
+            <TextInput
+              placeholderTextColor={colours.text_placeholder}
+              style={[styles.input, { color: colours.text_primary }]}
+              value={currLocation}
+              onChangeText={setCurrLocation}
+            />
           </View>
         </View>
       )}
 
       {!isPickingLocation && (
         <View style={styles.addLocationContainer}>
-          <Pressable style={styles.addLocationIconCircle} onPress={() => {
-            if(!user){
-              router.push({
-                pathname: '/auth',
-                params: { redirectTo: '/map'},
-              });
-            }
-            setModalVisible(true)
-            }}>
-            <Plus color={colours.secondary_bg} size={28} strokeWidth={2} />
+          <Pressable
+            style={[styles.addLocationIconCircle, { backgroundColor: colours.accent_1 }]}
+            onPress={() => {
+              if (!user) {
+                router.push({
+                  pathname: "/auth",
+                  params: { redirectTo: "/map" },
+                });
+              }
+              setModalVisible(true);
+            }}
+          >
+            <Plus color="#FFFFFF" size={28} strokeWidth={2} />
           </Pressable>
         </View>
       )}
@@ -90,16 +109,21 @@ export default function MapPage() {
         onRequestPickLocation={handleStartPicking}
       />
 
-      {/* Picking-mode UI, overlaid on the SAME map */}
+      {/* Picking-mode UI */}
       {isPickingLocation && (
         <>
-          <BackButton onPress={handleCancelPick} style={styles.pickerBackButton} type="Close"/>
+          <BackButton onPress={handleCancelPick} style={styles.pickerBackButton} type="Close" />
           <View style={styles.pinContainer} pointerEvents="none">
             <MapPin color={colours.accent_1} size={40} fill={colours.accent_1} />
           </View>
           <View style={styles.pickerFooter}>
-            <Pressable style={styles.pickerConfirmButton} onPress={handleConfirmPick}>
-              <Text style={styles.pickerConfirmText}>Confirm Location</Text>
+            <Pressable
+              style={[styles.pickerConfirmButton, { backgroundColor: colours.accent_1 }]}
+              onPress={handleConfirmPick}
+            >
+              <Text style={[styles.pickerConfirmText, { color: colours.secondary_bg }]}>
+                Confirm Location
+              </Text>
             </Pressable>
           </View>
         </>
@@ -108,7 +132,11 @@ export default function MapPage() {
       <View style={styles.container}>
         <Mapbox.MapView
           style={styles.map}
-          styleURL={'mapbox://styles/qrome/cms5onyxy000r01rd2e5w8fas'}
+          styleURL={
+            isDarkMode
+              ? "mapbox://styles/mapbox/dark-v11"
+              : "mapbox://styles/qrome/cms5onyxy000r01rd2e5w8fas"
+          }
           scaleBarEnabled={false}
           logoEnabled={false}
           attributionEnabled={false}
@@ -123,19 +151,38 @@ export default function MapPage() {
             centerCoordinate={
               isPickingLocation && pickerCenter
                 ? [pickerCenter.longitude, pickerCenter.latitude]
-                : coords ? [coords.longitude, coords.latitude] : [106.8272, -6.1751]
+                : coords
+                ? [coords.longitude, coords.latitude]
+                : [106.8272, -6.1751]
             }
             animationMode="flyTo"
             animationDuration={isPickingLocation ? 300 : 500}
-          /> 
-          {!isLoading && nearbyLocations.map((location) => (
-            <Mapbox.PointAnnotation id={location.id} key={location.id} coordinate={[location.longitude, location.latitude]}>
-              {location.imageUrl ? <Image source={{uri: location.imageUrl}} style={styles.annotationImg}/> : <View style={[styles.annotationImg, {padding:5, backgroundColor: "red"}]}></View>}
-            </Mapbox.PointAnnotation>
-          ))}
+          />
+          {!isLoading &&
+            nearbyLocations.map((location) => (
+              <Mapbox.PointAnnotation
+                id={location.id}
+                key={location.id}
+                coordinate={[location.longitude, location.latitude]}
+              >
+                {location.imageUrl ? (
+                  <Image
+                    source={{ uri: location.imageUrl }}
+                    style={[styles.annotationImg, { borderColor: colours.border_2 }]}
+                  />
+                ) : (
+                  <View
+                    style={[
+                      styles.annotationImg,
+                      { padding: 5, backgroundColor: colours.accent_1, borderColor: colours.border_2 },
+                    ]}
+                  />
+                )}
+              </Mapbox.PointAnnotation>
+            ))}
           {coords && !isPickingLocation && <Mapbox.UserLocation visible={true} />}
         </Mapbox.MapView>
-      </View>      
+      </View>
     </View>
   );
 }
@@ -163,9 +210,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colours.secondary_bg,
     borderRadius: 999,
-    borderColor: colours.border_1,
     borderWidth: 2,
     paddingHorizontal: 14,
     gap: 10,
@@ -174,10 +219,9 @@ const styles = StyleSheet.create({
   },
   input: {
     fontSize: 16,
-    color: colours.text_primary,
     flex: 1,
   },
-  addLocationContainer:{
+  addLocationContainer: {
     position: "absolute",
     padding: 24,
     bottom: 0,
@@ -188,7 +232,6 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 99,
-    backgroundColor: colours.accent_1,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -211,27 +254,25 @@ const styles = StyleSheet.create({
   },
   pickerConfirmButton: {
     flex: 2,
-    backgroundColor: colours.accent_1,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: "center",
   },
-  pickerConfirmText: { 
-    color: colours.secondary_bg, 
-    fontWeight: "700", 
-    fontSize: 15 
+  pickerConfirmText: {
+    fontWeight: "700",
+    fontSize: 15,
   },
-  pickerBackButton:{
+  pickerBackButton: {
     position: "absolute",
     zIndex: 10,
     top: 24,
     left: 24,
   },
-  annotationImg:{
+  annotationImg: {
     width: 40,
     height: 40,
     borderRadius: 999,
     borderWidth: 4,
-    borderColor: colours.border_2
-  }
+  },
 });
+
