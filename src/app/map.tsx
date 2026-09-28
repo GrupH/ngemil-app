@@ -4,21 +4,27 @@ import Chip from "@/components/Map/Chip";
 import LocationSelector, {
   LocationResult,
 } from "@/components/Map/LocationSelector";
+import { useLocationContext } from "@/context/LocationContext";
 import { useNearbyLocationContext } from "@/context/NearbyLocationContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/hooks/auth";
-import { useLocation } from "@/hooks/useLocation";
 import { CoordsType } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
 import { useRouter } from "expo-router";
-import { MapPin, Plus } from "lucide-react-native";
+import { LocateFixed, MapPin, Plus } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
 export default function MapPage() {
-  const { fullName: locationName, coords } = useLocation();
+  const {
+    fullName: locationName,
+    coords,
+    selectCoords,
+    followUser,
+    isManual,
+  } = useLocationContext();
   const { user } = useAuth();
   const router = useRouter();
   const { colours, isDarkMode } = useTheme();
@@ -65,12 +71,10 @@ export default function MapPage() {
   }
 
   function handleChangeLocation(location: LocationResult) {
-    setCurrCoords({
+    selectCoords({
       latitude: location.latitude,
       longitude: location.longitude,
     });
-
-    setCurrLocation(location.name);
   }
 
   return (
@@ -91,25 +95,47 @@ export default function MapPage() {
       )}
 
       {!isPickingLocation && (
-        <View style={styles.addLocationContainer}>
-          <Pressable
-            style={[
-              styles.addLocationIconCircle,
-              { backgroundColor: colours.accent_1 },
-            ]}
-            onPress={() => {
-              if (!user) {
-                router.push({
-                  pathname: "/auth",
-                  params: { redirectTo: "/map" },
-                });
-              }
-              setModalVisible(true);
-            }}
-          >
-            <Plus color="#FFFFFF" size={28} strokeWidth={2} />
-          </Pressable>
-        </View>
+        <>
+          {isManual && (
+            <View style={styles.resetLocationContainer}>
+              <Pressable
+                style={[
+                  styles.resetLocationIconCircle,
+                  {
+                    backgroundColor: colours.secondary_bg,
+                    borderColor: colours.border_1,
+                  },
+                ]}
+                onPress={followUser}
+              >
+                <LocateFixed
+                  color={colours.accent_1}
+                  size={28}
+                  strokeWidth={2}
+                />
+              </Pressable>
+            </View>
+          )}
+          <View style={styles.addLocationContainer}>
+            <Pressable
+              style={[
+                styles.addLocationIconCircle,
+                { backgroundColor: colours.accent_1 },
+              ]}
+              onPress={() => {
+                if (!user) {
+                  router.push({
+                    pathname: "/auth",
+                    params: { redirectTo: "/map" },
+                  });
+                }
+                setModalVisible(true);
+              }}
+            >
+              <Plus color="#FFFFFF" size={28} strokeWidth={2} />
+            </Pressable>
+          </View>
+        </>
       )}
 
       <AddLocationModal
@@ -172,7 +198,7 @@ export default function MapPage() {
             minZoomLevel={12}
             maxZoomLevel={20}
             zoomLevel={isPickingLocation ? 18 : 16}
-            followUserLocation={!isPickingLocation}
+            followUserLocation={!isPickingLocation && !isManual}
             followUserMode={Mapbox.UserTrackingMode.Follow}
             centerCoordinate={
               isPickingLocation && pickerCenter
@@ -273,6 +299,21 @@ const styles = StyleSheet.create({
   addLocationIconCircle: {
     width: 60,
     height: 60,
+    borderRadius: 99,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  resetLocationContainer: {
+    position: "absolute",
+    padding: 24,
+    bottom: 0,
+    left: 0,
+    zIndex: 10,
+  },
+  resetLocationIconCircle: {
+    width: 60,
+    height: 60,
+    borderWidth: 2,
     borderRadius: 99,
     alignItems: "center",
     justifyContent: "center",

@@ -1,17 +1,16 @@
+import { useLocationContext } from "@/context/LocationContext";
 import { useTheme } from "@/context/ThemeContext";
-import { useLocation } from "@/hooks/useLocation";
-import { getAllTags, getUserTagVotesForLocation, unvoteTag, voteTag } from "@/lib/tags";
+import {
+  getAllTags,
+  getUserTagVotesForLocation,
+  unvoteTag,
+  voteTag,
+} from "@/lib/tags";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { Check, CheckCircle2 } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import ModalComponent, { type ModalHandle } from "./ModalComponent";
 import TagVotingSkeleton from "./Skeleton/TagVotingSkeleton";
 
@@ -35,7 +34,7 @@ export default function TagVotingModal({
 
   const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { coords } = useLocation();
+  const { coords } = useLocationContext();
 
   const { data: allTags, isLoading } = useQuery({
     queryKey: ["allTags"],
@@ -51,7 +50,8 @@ export default function TagVotingModal({
     queryFn: async () => {
       if (!allTags) return [];
 
-      const { data: votes, error: votesError } = await getUserTagVotesForLocation(id);
+      const { data: votes, error: votesError } =
+        await getUserTagVotesForLocation(id);
       if (votesError) throw votesError;
 
       const votedTagIds = new Set(votes.map((v) => v.tag_id));
@@ -65,13 +65,17 @@ export default function TagVotingModal({
   });
 
   const [tags, setTags] = useState<Tag[]>([]);
-  const [initialVotedIds, setInitialVotedIds] = useState<Set<string>>(new Set());
+  const [initialVotedIds, setInitialVotedIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (tagsData) {
       setTags(tagsData);
-      setInitialVotedIds(new Set(tagsData.filter((t) => t.voted).map((t) => t.id)));
+      setInitialVotedIds(
+        new Set(tagsData.filter((t) => t.voted).map((t) => t.id)),
+      );
     }
   }, [tagsData]);
 
@@ -79,16 +83,20 @@ export default function TagVotingModal({
 
   const toggleVote = (id: string) => {
     setTags((prev) =>
-      prev.map((tag) =>
-        tag.id === id ? { ...tag, voted: !tag.voted } : tag
-      )
+      prev.map((tag) => (tag.id === id ? { ...tag, voted: !tag.voted } : tag)),
     );
   };
 
   const voteDiff = useMemo(() => {
-    const currentVotedIds = new Set(tags.filter((t) => t.voted).map((t) => t.id));
-    const toAdd = [...currentVotedIds].filter((tagId) => !initialVotedIds.has(tagId));
-    const toRemove = [...initialVotedIds].filter((tagId) => !currentVotedIds.has(tagId));
+    const currentVotedIds = new Set(
+      tags.filter((t) => t.voted).map((t) => t.id),
+    );
+    const toAdd = [...currentVotedIds].filter(
+      (tagId) => !initialVotedIds.has(tagId),
+    );
+    const toRemove = [...initialVotedIds].filter(
+      (tagId) => !currentVotedIds.has(tagId),
+    );
     return { toAdd, toRemove };
   }, [tags, initialVotedIds]);
 
@@ -128,7 +136,12 @@ export default function TagVotingModal({
   };
 
   if (isLoading || locationTagsLoading || !allTags || allTags.length === 0)
-    return <TagVotingSkeleton modalVisible={modalVisible} setModalVisible={setModalVisible} />;
+    return (
+      <TagVotingSkeleton
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+      />
+    );
 
   return (
     <ModalComponent
@@ -136,7 +149,9 @@ export default function TagVotingModal({
       visible={modalVisible}
       onClose={() => setModalVisible(false)}
     >
-      <View style={[styles.infoContainer, { borderBottomColor: colours.border_1 }]}>
+      <View
+        style={[styles.infoContainer, { borderBottomColor: colours.border_1 }]}
+      >
         <Text style={[styles.placeTitle, { color: colours.text_primary }]}>
           Vote for Tags
         </Text>
@@ -144,11 +159,15 @@ export default function TagVotingModal({
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
             <CheckCircle2 color={colours.accent_1} size={16} />
-            <Text style={[styles.infoTextBold, { color: colours.text_primary }]}>
+            <Text
+              style={[styles.infoTextBold, { color: colours.text_primary }]}
+            >
               {votedCount} selected
             </Text>
           </View>
-          <Text style={[styles.infoTextMuted, { color: colours.text_secondary }]}>
+          <Text
+            style={[styles.infoTextMuted, { color: colours.text_secondary }]}
+          >
             Tap a tag to vote for how well it fits this spot
           </Text>
         </View>
@@ -205,7 +224,9 @@ export default function TagVotingModal({
           style={[
             styles.detailButton,
             { backgroundColor: colours.accent_1 },
-            (!hasChanges || isSubmitting) && { backgroundColor: colours.border_1 },
+            (!hasChanges || isSubmitting) && {
+              backgroundColor: colours.border_1,
+            },
           ]}
           onPress={handleSubmitVotes}
           disabled={!hasChanges || isSubmitting}
