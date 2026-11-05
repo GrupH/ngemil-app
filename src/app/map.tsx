@@ -12,7 +12,7 @@ import { CoordsType } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
 import { useRouter } from "expo-router";
 import { LocateFixed, MapPin, Plus } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
@@ -39,6 +39,8 @@ export default function MapPage() {
   const [pickerCenter, setPickerCenter] = useState<CoordsType | null>(null);
 
   const [zoomLevel, setZoomLevel] = useState<number>(0);
+
+  const annotationRef = useRef<Mapbox.PointAnnotation>(null);
 
   useEffect(() => {
     setCurrLocation(locationName);
