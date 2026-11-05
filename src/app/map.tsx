@@ -12,7 +12,7 @@ import { CoordsType } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
 import { useRouter } from "expo-router";
 import { LocateFixed, MapPin, Plus } from "lucide-react-native";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
@@ -40,7 +40,8 @@ export default function MapPage() {
 
   const [zoomLevel, setZoomLevel] = useState<number>(0);
 
-  const annotationRef = useRef<Mapbox.PointAnnotation>(null);
+  const cameraRef = useRef<Mapbox.Camera>(null);
+  const shapeSourceRef = useRef<Mapbox.ShapeSource>(null);
 
   useEffect(() => {
     setCurrLocation(locationName);
@@ -78,6 +79,31 @@ export default function MapPage() {
       longitude: location.longitude,
     });
   }
+
+  async function handleClusterPress(e: any) {
+    const feature = e.features?.[0];
+    if (!feature?.properties?.cluster) return;
+
+    const zoom = await shapeSourceRef.current?.getClusterExpansionZoom(feature);
+    cameraRef.current?.setCamera({
+      centerCoordinate: feature.geometry.coordinates,
+      zoomLevel: zoom ?? zoomLevel + 1,
+      animationDuration: 400,
+    });
+  }
+
+  const locationsGeoJSON = useMemo<GeoJSON.FeatureCollection>(
+    () => ({
+      type: "FeatureCollection",
+      features: nearbyLocations.map((l) => ({
+        type: "Feature",
+        id: l.id,
+        properties: { id: l.id, title: l.title },
+        geometry: { type: "Point", coordinates: [l.longitude, l.latitude] },
+      })),
+    }),
+    [nearbyLocations],
+  );
 
   return (
     <View style={[styles.page, { backgroundColor: colours.primary_bg }]}>
@@ -197,6 +223,7 @@ export default function MapPage() {
           onCameraChanged={handleCameraChanged}
         >
           <Mapbox.Camera
+            ref={cameraRef}
             minZoomLevel={12}
             maxZoomLevel={20}
             zoomLevel={isPickingLocation ? 18 : 16}
@@ -230,24 +257,65 @@ export default function MapPage() {
                 </View>
               </Mapbox.PointAnnotation>
             ))}
-          {!isLoading &&
-            zoomLevel < 14 &&
-            nearbyLocations.map((location) => (
-              <Mapbox.PointAnnotation
-                id={location.id}
-                key={location.id}
-                coordinate={[location.longitude, location.latitude]}
-              >
-                <View collapsable={false}>
-                  <Chip
-                    name={location.title}
-                    dist={location.distance}
-                    img={location.imageUrl}
-                    type="compact"
-                  />
-                </View>
-              </Mapbox.PointAnnotation>
-            ))}
+          {!isLoading && (
+            <Mapbox.ShapeSource
+              id="locations-source"
+              ref={shapeSourceRef}
+              shape={locationsGeoJSON}
+              cluster
+              clusterRadius={50}
+              clusterMaxZoomLevel={13}
+              onPress={handleClusterPress}
+            >
+              {/* Cluster bubbles (size grows with count) */}
+              <Mapbox.CircleLayer
+                id="clusters"
+                maxZoomLevel={14}
+                filter={["has", "point_count"]}
+                style={{
+                  circleColor: colours.primary_bg,
+                  circleStrokeColor: colours.accent_1,
+                  circleStrokeWidth: 2,
+                  circleRadius: [
+                    "step",
+                    ["get", "point_count"],
+                    16,
+                    10,
+                    20,
+                    50,
+                    26,
+                  ],
+                }}
+              />
+
+              {/* Count label */}
+              <Mapbox.SymbolLayer
+                id="cluster-count"
+                maxZoomLevel={14}
+                filter={["has", "point_count"]}
+                style={{
+                  textField: ["get", "point_count_abbreviated"],
+                  textSize: 13,
+                  textColor: colours.text_primary,
+                  textAllowOverlap: true,
+                  textIgnorePlacement: true,
+                }}
+              />
+
+              {/* Locations that aren't part of any cluster */}
+              <Mapbox.CircleLayer
+                id="single-points"
+                maxZoomLevel={14}
+                filter={["!", ["has", "point_count"]]}
+                style={{
+                  circleColor: colours.accent_1,
+                  circleStrokeColor: colours.primary_bg,
+                  circleStrokeWidth: 2,
+                  circleRadius: 8,
+                }}
+              />
+            </Mapbox.ShapeSource>
+          )}
           {coords && !isPickingLocation && (
             <Mapbox.UserLocation visible={true} />
           )}
