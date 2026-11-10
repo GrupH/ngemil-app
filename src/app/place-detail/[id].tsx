@@ -1,5 +1,6 @@
 import AddReviewModal from "@/components/AddReviewModal";
 import BackButton from "@/components/BackButton";
+import LocationPin from "@/components/LocationPin";
 import PhotoCarousel from "@/components/PhotoCarousel";
 import ReviewsSection from "@/components/ReviewsSection";
 import PlaceDetailSkeleton from "@/components/Skeleton/PlaceDetailSkeleton";
@@ -14,7 +15,7 @@ import type { LocationByID, PlaceData } from "@/types/types";
 import { ExistingReviewType } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { MapPin, Star } from "lucide-react-native";
+import { Star } from "lucide-react-native";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -42,7 +43,7 @@ export default function PlaceDetailPage() {
 
       if (error) throw error;
 
-      return parseLocationData(data);
+      return parseLocationData(data as any);
     },
   });
 
@@ -163,11 +164,12 @@ export default function PlaceDetailPage() {
             </View>
             }
 
-            {/* TO BE IMPLEMENTED */}
-            <View style={styles.infoItem}>
-              <MapPin color="#fff" fill="#949FF1" size={16} />
-              <Text style={styles.infoTextBold}>{locationData?.distance}</Text>
-            </View>
+            {locationData?.distance && locationData.distance !== "N/A" && locationData.distance !== "err" && (
+              <View style={styles.infoItem}>
+                <LocationPin size={16} color="#949FF1" holeColor="#FFFFFF" />
+                <Text style={styles.infoTextBold}>{locationData?.distance}</Text>
+              </View>
+            )}
           </View>
 
           {/* Description */}

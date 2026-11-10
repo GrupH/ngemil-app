@@ -21,7 +21,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
 const App = () => {
-  const [search, setSearch] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceData | null>(null);
   const router = useRouter();
@@ -80,8 +79,9 @@ const App = () => {
         <View style={styles.searchBarContainer}>
           <SearchBar
             placeholder="Search for snacks or hangout spots..."
-            value={search}
-            onChangeText={setSearch}
+            value=""
+            editable={false}
+            onPress={() => router.push("/search" as any)}
           />
         </View>
 

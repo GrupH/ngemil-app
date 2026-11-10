@@ -1,12 +1,16 @@
 import { colours } from "@/constants/style";
-import { Search } from "lucide-react-native";
-import { StyleSheet, TextInput, View } from "react-native";
+import { Search, X } from "lucide-react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
 type SearchBarProps = {
   placeholder: string;
   value: string;
-  onChangeText: (text: string) => void;
+  onChangeText?: (text: string) => void;
   onSubmit?: () => void;
+  onPress?: () => void;
+  editable?: boolean;
+  autoFocus?: boolean;
+  onClear?: () => void;
 };
 
 export default function SearchBar({
@@ -14,8 +18,12 @@ export default function SearchBar({
   value,
   onChangeText,
   onSubmit,
+  onPress,
+  editable = true,
+  autoFocus = false,
+  onClear,
 }: SearchBarProps) {
-  return (
+  const content = (
     <View style={styles.container}>
       <Search color="#949FF1" size={20} />
       <TextInput
@@ -25,12 +33,33 @@ export default function SearchBar({
         onSubmitEditing={onSubmit}
         placeholderTextColor="#CBC6C6"
         style={styles.input}
+        editable={editable}
+        autoFocus={autoFocus}
+        returnKeyType="search"
       />
+      {value.length > 0 && onClear && (
+        <Pressable onPress={onClear} hitSlop={10} style={styles.clearButton}>
+          <X color="#8B889E" size={18} />
+        </Pressable>
+      )}
     </View>
   );
+
+  if (onPress && !editable) {
+    return (
+      <Pressable onPress={onPress} style={styles.pressableWrapper}>
+        {content}
+      </Pressable>
+    );
+  }
+
+  return content;
 }
 
 const styles = StyleSheet.create({
+  pressableWrapper: {
+    width: "100%",
+  },
   container: {
     flexDirection: "row",
     alignItems: "center",
@@ -49,4 +78,10 @@ const styles = StyleSheet.create({
     color: colours.text_primary,
     paddingVertical: 12,
   },
+  clearButton: {
+    padding: 4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
+

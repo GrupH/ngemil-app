@@ -1,9 +1,10 @@
+import ImagePlaceholder from "./ImagePlaceholder";
+import LocationPin from "@/components/LocationPin";
 import Tag from "@/components/Tag";
 import { colours } from "@/constants/style";
 import { SpotProps } from "@/types/types";
-import { MapPin, Star } from "lucide-react-native";
+import { Star } from "lucide-react-native";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import ImagePlaceholder from "./ImagePlaceholder";
 
 export default function NearbySpotCard({
   imageUrl,
@@ -37,10 +38,7 @@ export default function NearbySpotCard({
             </>
           }
 
-          <View style={styles.iconContainer}>
-            <MapPin color="#949FF1" fill="#949FF1" size={11} />
-            <View style={styles.iconHole} />
-          </View>
+          <LocationPin size={11} color="#949FF1" holeColor="#FFFFFF" />
           <Text style={styles.statsText}>{distance}</Text>
         </View>
       </View>

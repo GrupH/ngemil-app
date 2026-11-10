@@ -1,9 +1,10 @@
+import LocationPin from "@/components/LocationPin";
 import PhotoCarousel from "@/components/PhotoCarousel";
 import TagsSection from "@/components/TagsSection";
 import { colours } from "@/constants/style";
 import type { PlaceData } from "@/types/types";
 import { useRouter } from "expo-router";
-import { MapPin, Star } from "lucide-react-native";
+import { Star } from "lucide-react-native";
 import { useRef } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import ModalComponent, { type ModalHandle } from "./ModalComponent";
@@ -53,10 +54,12 @@ export default function PlaceDetailModal({
             </Text>
           </View>
           }
-          <View style={styles.infoItem}>
-            <MapPin color="#fff" fill="#949FF1" size={16} />
-            <Text style={styles.infoTextBold}>{place.distance}</Text>
-          </View>
+          {place.distance && place.distance !== "N/A" && place.distance !== "err" && (
+            <View style={styles.infoItem}>
+              <LocationPin size={16} color="#949FF1" holeColor="#FFFFFF" />
+              <Text style={styles.infoTextBold}>{place.distance}</Text>
+            </View>
+          )}
         </View>
 
         {/* Photos Carousel */}
