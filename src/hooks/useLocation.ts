@@ -47,8 +47,8 @@ export async function reverseGeocode(
 export function useLocation(enabled: boolean = true) {
   const [state, setState] = useState<LocationState>({
     coords: null,
-    name: "Searching...",
-    fullName: "Searching Location...",
+    name: "Choose location",
+    fullName: "Choose Location...",
     loading: true,
     error: null,
   });

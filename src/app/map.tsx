@@ -124,7 +124,7 @@ export default function MapPage() {
 
       {!isPickingLocation && (
         <>
-          {isManual && (
+          {isManual && coords && (
             <View style={styles.resetLocationContainer}>
               <Pressable
                 style={[
@@ -144,25 +144,27 @@ export default function MapPage() {
               </Pressable>
             </View>
           )}
-          <View style={styles.addLocationContainer}>
-            <Pressable
-              style={[
-                styles.addLocationIconCircle,
-                { backgroundColor: colours.accent_1 },
-              ]}
-              onPress={() => {
-                if (!user) {
-                  router.push({
-                    pathname: "/auth",
-                    params: { redirectTo: "/map" },
-                  });
-                }
-                setModalVisible(true);
-              }}
-            >
-              <Plus color="#FFFFFF" size={28} strokeWidth={2} />
-            </Pressable>
-          </View>
+          {coords && (
+            <View style={styles.addLocationContainer}>
+              <Pressable
+                style={[
+                  styles.addLocationIconCircle,
+                  { backgroundColor: colours.accent_1 },
+                ]}
+                onPress={() => {
+                  if (!user) {
+                    router.push({
+                      pathname: "/auth",
+                      params: { redirectTo: "/map" },
+                    });
+                  }
+                  setModalVisible(true);
+                }}
+              >
+                <Plus color="#FFFFFF" size={28} strokeWidth={2} />
+              </Pressable>
+            </View>
+          )}
         </>
       )}
 

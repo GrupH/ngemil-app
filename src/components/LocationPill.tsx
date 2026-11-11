@@ -21,7 +21,7 @@ export default function LocationPill({ onPress, title }: LocationPillProps) {
     >
       <LocationPin size={18} color="#C6B6FC" holeColor="#726E83" />
       <Text style={styles.title} ellipsizeMode="tail" numberOfLines={1}>
-        {title}
+        {title ?? "Choose location"}
       </Text>
     </Pressable>
   );
