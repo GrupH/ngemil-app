@@ -1,6 +1,4 @@
-import { LocationProvider } from "@/context/LocationContext";
 import { NearbyLocationProvider } from "@/context/NearbyLocationContext";
-import { ThemeProvider } from "@/context/ThemeContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 
@@ -9,13 +7,9 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <LocationProvider>
-          <NearbyLocationProvider>
-            <Stack screenOptions={{ headerShown: false }}></Stack>
-          </NearbyLocationProvider>
-        </LocationProvider>
-      </ThemeProvider>
+      <NearbyLocationProvider>
+        <Stack screenOptions={{ headerShown: false }}></Stack>
+      </NearbyLocationProvider>
     </QueryClientProvider>
   );
 }

@@ -59,19 +59,14 @@ export interface LocationRatingSummary {
 
 export interface LocationRating {
   id: string;
-  user_id: string;
+  user_id: string,
   rating: number;
   comment: string;
   created_at: string;
-  profiles:
-    | {
-        username: any;
-        avatar_url: any;
-      }
-    | {
-        username: any;
-        avatar_url: any;
-      }[];
+  profiles: {
+    username: any;
+    avatar_url: any;
+  };
 }
 
 export interface ExistingReviewType {
@@ -80,7 +75,7 @@ export interface ExistingReviewType {
 }
 
 export interface LocationTagVoteSummary {
-  tags: { tag: any } | { tag: any }[];
+  tags: { tag: any };
   vote_count: any;
 }
 
