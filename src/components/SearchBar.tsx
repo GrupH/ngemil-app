@@ -5,8 +5,12 @@ import { StyleSheet, TextInput, View } from "react-native";
 type SearchBarProps = {
   placeholder: string;
   value: string;
-  onChangeText: (text: string) => void;
+  onChangeText?: (text: string) => void;
   onSubmit?: () => void;
+  onPress?: () => void;
+  editable?: boolean;
+  autoFocus?: boolean;
+  onClear?: () => void;
 };
 
 export default function SearchBar({
@@ -14,6 +18,10 @@ export default function SearchBar({
   value,
   onChangeText,
   onSubmit,
+  onPress,
+  editable = true,
+  autoFocus = false,
+  onClear,
 }: SearchBarProps) {
   const { colours } = useTheme();
 
@@ -36,11 +44,29 @@ export default function SearchBar({
         placeholderTextColor={colours.text_placeholder}
         style={[styles.input, { color: colours.text_primary }]}
       />
+      {value.length > 0 && onClear && (
+        <Pressable onPress={onClear} hitSlop={10} style={styles.clearButton}>
+          <X color="#8B889E" size={18} />
+        </Pressable>
+      )}
     </View>
   );
+
+  if (onPress && !editable) {
+    return (
+      <Pressable onPress={onPress} style={styles.pressableWrapper}>
+        {content}
+      </Pressable>
+    );
+  }
+
+  return content;
 }
 
 const styles = StyleSheet.create({
+  pressableWrapper: {
+    width: "100%",
+  },
   container: {
     flexDirection: "row",
     alignItems: "center",
@@ -56,4 +82,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingVertical: 12,
   },
+  clearButton: {
+    padding: 4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
+

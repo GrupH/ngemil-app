@@ -251,4 +251,4 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 24,
   },
-});
+});

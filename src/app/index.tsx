@@ -116,8 +116,9 @@ const App = () => {
         <View style={styles.searchBarContainer}>
           <SearchBar
             placeholder="Search for snacks or hangout spots..."
-            value={search}
-            onChangeText={setSearch}
+            value=""
+            editable={false}
+            onPress={() => router.push("/search" as any)}
           />
         </View>
 

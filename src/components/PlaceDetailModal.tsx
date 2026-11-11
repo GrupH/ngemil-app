@@ -1,9 +1,10 @@
+import LocationPin from "@/components/LocationPin";
 import PhotoCarousel from "@/components/PhotoCarousel";
 import TagsSection from "@/components/TagsSection";
 import { useTheme } from "@/context/ThemeContext";
 import type { PlaceData } from "@/types/types";
 import { useRouter } from "expo-router";
-import { MapPin, Star } from "lucide-react-native";
+import { Star } from "lucide-react-native";
 import { useRef } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import ModalComponent, { type ModalHandle } from "./ModalComponent";
