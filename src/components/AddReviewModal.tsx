@@ -1,4 +1,4 @@
-import { useTheme } from "@/context/ThemeContext";
+import { colours } from "@/constants/style";
 import { editRating, submitRating } from "@/lib/ratings";
 import { ExistingReviewType } from "@/types/types";
 import { useQueryClient } from "@tanstack/react-query";
@@ -29,7 +29,7 @@ type RatingReviewModalProps = {
   setModalVisible: (visible: boolean) => void;
   onSubmit?: (rating: number, review: string) => void;
   isEdit?: boolean;
-  existingData?: ExistingReviewType;
+  existingData?: ExistingReviewType
 };
 
 export default function RatingReviewModal({
@@ -39,13 +39,12 @@ export default function RatingReviewModal({
   isEdit = false,
   existingData = {
     rating: 0,
-    review: "",
-  },
+    review: ""
+  }
 }: RatingReviewModalProps) {
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
   const modalRef = useRef<ModalHandle>(null);
-  const { colours } = useTheme();
 
   const [rating, setRating] = useState(existingData.rating);
   const [review, setReview] = useState(existingData.review);
@@ -60,9 +59,9 @@ export default function RatingReviewModal({
   );
 
   useEffect(() => {
-    setRating(existingData.rating);
-    setReview(existingData.review);
-  }, [existingData]);
+    setRating(existingData.rating)
+    setReview(existingData.review)
+  }, [existingData])
 
   const handleRate = (value: number) => {
     if (rating === value) {
@@ -97,7 +96,7 @@ export default function RatingReviewModal({
       modalRef.current?.close();
     } catch (err) {
       console.error("Failed to submit rating:", err);
-      setSubmitError("Couldn't submit your review. Please try again.");
+      setSubmitError("Couldn't submit your review. Please try again."); //TODO: error toast
     } finally {
       setIsSubmitting(false);
     }
@@ -127,7 +126,7 @@ export default function RatingReviewModal({
       modalRef.current?.close();
     } catch (err) {
       console.error("Failed to edit rating:", err);
-      setSubmitError("Couldn't edit your review. Please try again.");
+      setSubmitError("Couldn't edit your review. Please try again."); //TODO: error toast
     } finally {
       setIsSubmitting(false);
     }
@@ -141,13 +140,9 @@ export default function RatingReviewModal({
       maxHeight="100%"
       keyboardAvoiding
     >
-      <Text style={[styles.placeTitle, { color: colours.text_primary }]}>
-        {isEdit ? "Edit" : "Add"} Your Review
-      </Text>
-      <Text style={[styles.infoTextMuted, { color: colours.text_secondary }]}>
-        {isEdit
-          ? "Update your thoughts on this spot"
-          : "Share your experience with this spot"}
+      <Text style={styles.placeTitle}>{isEdit ? 'Edit' : 'Add'} Your Review</Text>
+      <Text style={styles.infoTextMuted}>
+        {isEdit ? "Update your thoughts on this spot" : "Share your experience with this spot"}
       </Text>
 
       <View style={styles.starRow}>
@@ -175,26 +170,14 @@ export default function RatingReviewModal({
       </View>
 
       <Text
-        style={[
-          styles.ratingLabel,
-          { color: colours.text_secondary },
-          rating > 0 && { color: colours.accent_1 },
-        ]}
+        style={[styles.ratingLabel, rating > 0 && styles.ratingLabelActive]}
       >
         {ratingLabel}
       </Text>
 
-      <View
-        style={[
-          styles.reviewInputContainer,
-          {
-            backgroundColor: colours.input_bg,
-            borderColor: colours.border_1,
-          },
-        ]}
-      >
+      <View style={styles.reviewInputContainer}>
         <TextInput
-          style={[styles.reviewInput, { color: colours.text_primary }]}
+          style={styles.reviewInput}
           placeholder="What stood out? What could be better? (optional)"
           placeholderTextColor={colours.text_placeholder}
           multiline
@@ -203,26 +186,21 @@ export default function RatingReviewModal({
           onChangeText={setReview}
           textAlignVertical="top"
         />
-        <Text style={[styles.charCount, { color: colours.text_secondary }]}>
+        <Text style={styles.charCount}>
           {review.length}/{MAX_REVIEW_LENGTH}
         </Text>
       </View>
 
-      <View style={[styles.footer, { borderTopColor: colours.border_1 }]}>
+      <View style={styles.footer}>
         <Pressable
-          style={[
-            styles.detailButton,
-            { backgroundColor: colours.accent_1 },
-            !canSubmit && { backgroundColor: colours.border_1 },
-          ]}
+          style={[styles.detailButton, !canSubmit && styles.buttonDisabled]}
           onPress={isEdit ? handleEdit : handleSubmit}
           disabled={!canSubmit}
         >
           <Text
             style={[
               styles.detailButtonText,
-              { color: colours.secondary_bg },
-              !canSubmit && { color: colours.text_secondary, opacity: 0.5 },
+              !canSubmit && styles.buttonDisabledText,
             ]}
           >
             {isSubmitting ? "Submitting..." : "Submit Review"}
@@ -237,11 +215,14 @@ const styles = StyleSheet.create({
   placeTitle: {
     fontSize: 22,
     fontWeight: "800",
+    color: colours.text_primary,
+    fontFamily: "System",
     marginTop: 4,
   },
   infoTextMuted: {
     fontSize: 13,
     fontWeight: "500",
+    color: colours.text_secondary,
     lineHeight: 18,
     marginTop: 6,
   },
@@ -262,10 +243,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 14,
     fontWeight: "600",
+    color: colours.text_secondary,
+  },
+  ratingLabelActive: {
+    color: colours.accent_1,
   },
   reviewInputContainer: {
     marginTop: 24,
     borderWidth: 1.5,
+    borderColor: colours.border_1,
     borderRadius: 16,
     padding: 14,
   },
@@ -273,15 +259,18 @@ const styles = StyleSheet.create({
     minHeight: 120,
     fontSize: 14,
     fontWeight: "500",
+    color: colours.text_primary,
   },
   charCount: {
     alignSelf: "flex-end",
     fontSize: 11,
     fontWeight: "500",
+    color: colours.text_secondary,
     marginTop: 4,
   },
   footer: {
     borderTopWidth: 1,
+    borderTopColor: colours.border_1,
     marginHorizontal: -24,
     paddingHorizontal: 24,
     paddingTop: 16,
@@ -289,13 +278,22 @@ const styles = StyleSheet.create({
   },
   detailButton: {
     width: "100%",
+    backgroundColor: colours.accent_1,
     borderRadius: 12,
     paddingVertical: 14,
   },
   detailButtonText: {
+    color: colours.secondary_bg,
     width: "100%",
     fontWeight: "700",
     textAlign: "center",
     fontSize: 15,
   },
+  buttonDisabled:{
+    backgroundColor: colours.border_1
+  },
+  buttonDisabledText: {
+    color: colours.border_2,
+    opacity: 0.5
+  }
 });

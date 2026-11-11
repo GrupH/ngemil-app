@@ -1,40 +1,40 @@
 import AddReviewModal from "@/components/AddReviewModal";
 import BackButton from "@/components/BackButton";
+import LocationPin from "@/components/LocationPin";
 import PhotoCarousel from "@/components/PhotoCarousel";
 import ReviewsSection from "@/components/ReviewsSection";
 import PlaceDetailSkeleton from "@/components/Skeleton/PlaceDetailSkeleton";
 import TagsSection from "@/components/TagsSection";
 import TagVotingModal from "@/components/TagVotingModal";
 import TopMenusSection from "@/components/TopMenusSection";
+import { colours } from "@/constants/style";
 import { useNearbyLocationContext } from "@/context/NearbyLocationContext";
-import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/hooks/auth";
 import { getLocationById } from "@/lib/locations";
 import type { LocationByID, PlaceData } from "@/types/types";
 import { ExistingReviewType } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { MapPin, Star } from "lucide-react-native";
+import { Star } from "lucide-react-native";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PlaceDetailPage() {
-  const { user } = useAuth();
-  const { colours } = useTheme();
+  const { user } = useAuth()
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  const { nearbyLocations } = useNearbyLocationContext();
-  const distanceToLoc = nearbyLocations.find((location) => location.id === id)?.distance;
+  const { nearbyLocations } = useNearbyLocationContext()
+  const distanceToLoc = nearbyLocations.find((location) => location.id === id)?.distance
 
   const [tagModalOpen, setTagModal] = useState<boolean>(false);
   const [reviewModalOpen, setReviewModal] = useState<boolean>(false);
-  const [isEdit, setEdit] = useState<boolean>(false);
+  const [isEdit, setEdit] = useState<boolean>(false)
   const [existingReviewData, setExistingReviewData] = useState<ExistingReviewType>({
     rating: 0,
-    review: "",
-  });
+    review: ""
+  })
 
   const { data: locationData, isLoading } = useQuery({
     queryKey: ["locationById", id],
@@ -43,7 +43,7 @@ export default function PlaceDetailPage() {
 
       if (error) throw error;
 
-      return parseLocationData(data);
+      return parseLocationData(data as any);
     },
   });
 
@@ -62,11 +62,10 @@ export default function PlaceDetailPage() {
       rating: location.location_rating_summary[0]?.avg_rating ?? -1,
       distance: distanceToLoc ?? "unknown",
       latitude: 0,
-      longitude: 0,
+      longitude:0,
       tags: location.location_tag_vote_summary.map((item) => {
-        const tagObj = Array.isArray(item.tags) ? item.tags[0] : item.tags;
         return {
-          name: tagObj?.tag || "",
+          name: item.tags.tag,
           count: item.vote_count,
         };
       }),
@@ -74,13 +73,12 @@ export default function PlaceDetailPage() {
       address: location.address,
       photos: location.location_images.map((item) => item.storage_path),
       reviews: location.location_ratings.map((item) => {
-        const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
         return {
           id: item.id,
           user_id: item.user_id,
           comment: item.comment,
-          avatar: profile?.avatar_url || "",
-          username: profile?.username || "Anonymous",
+          avatar: item.profiles.avatar_url,
+          username: item.profiles.username,
           rating: item.rating,
         };
       }),
@@ -91,8 +89,8 @@ export default function PlaceDetailPage() {
   function setModalVisible(visible: boolean) {
     if (visible && !user) {
       router.push({
-        pathname: "/auth",
-        params: { redirectTo: "/place-detail/[id]", id },
+        pathname: '/auth',
+        params: { redirectTo: '/place-detail/[id]', id },
       });
       return;
     }
@@ -103,32 +101,35 @@ export default function PlaceDetailPage() {
   function setReviewModalVisible(visible: boolean) {
     if (visible && !user) {
       router.push({
-        pathname: "/auth",
-        params: { redirectTo: "/place-detail/[id]", id },
+        pathname: '/auth',
+        params: { redirectTo: '/place-detail/[id]', id },
       });
       return;
     }
-
+    
     setReviewModal(visible);
   }
 
   function handleAddEditReview(
-    isEdit: boolean = false,
-    existingData: ExistingReviewType = {
+    isEdit: boolean =false, 
+    existingData:
+    ExistingReviewType = {
       rating: 0,
-      review: "",
+      review: ""
     }
-  ) {
-    setReviewModalVisible(true);
-    setEdit(isEdit);
-    setExistingReviewData(existingData);
+  ){
+    setReviewModalVisible(true)
+    setEdit(isEdit)
+    setExistingReviewData(existingData)
   }
 
   if (isLoading) return <PlaceDetailSkeleton variant="page" />;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colours.primary_bg }}>
-      <View style={[styles.mainContent, { backgroundColor: colours.primary_bg }]}>
+    <SafeAreaView>
+      <View
+        style={styles.mainContent}
+      >
         <View style={styles.headerContainer}>
           <BackButton
             type="Back"
@@ -141,9 +142,7 @@ export default function PlaceDetailPage() {
             }}
           />
           {/* Title */}
-          <Text style={[styles.placeTitle, { color: colours.text_primary }]}>
-            {locationData?.title}
-          </Text>
+          <Text style={styles.placeTitle}>{locationData?.title}</Text>
         </View>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -156,25 +155,25 @@ export default function PlaceDetailPage() {
 
           {/* Info Row - Rating and Distance */}
           <View style={styles.infoRow}>
-            {locationData?.rating && locationData?.rating > -1 && (
-              <View style={styles.infoItem}>
-                <Star color={colours.accent_1} fill={colours.accent_1} size={16} />
-                <Text style={[styles.infoTextBold, { color: colours.text_primary }]}>
-                  {locationData?.rating.toFixed(1)}
-                </Text>
-              </View>
-            )}
-
+            {locationData?.rating && locationData?.rating > -1 &&
             <View style={styles.infoItem}>
-              <MapPin color="#fff" fill={colours.accent_1} size={16} />
-              <Text style={[styles.infoTextBold, { color: colours.text_primary }]}>
-                {locationData?.distance}
+              <Star color="#949FF1" fill="#949FF1" size={16} />
+              <Text style={styles.infoTextBold}>
+                {locationData?.rating.toFixed(1)}
               </Text>
             </View>
+            }
+
+            {locationData?.distance && locationData.distance !== "N/A" && locationData.distance !== "err" && (
+              <View style={styles.infoItem}>
+                <LocationPin size={16} color="#949FF1" holeColor="#FFFFFF" />
+                <Text style={styles.infoTextBold}>{locationData?.distance}</Text>
+              </View>
+            )}
           </View>
 
           {/* Description */}
-          <Text style={[styles.descriptionText, { color: colours.text_secondary }]}>
+          <Text style={styles.descriptionText}>
             {locationData?.description}
           </Text>
 
@@ -197,7 +196,7 @@ export default function PlaceDetailPage() {
       <TagVotingModal
         modalVisible={tagModalOpen}
         setModalVisible={setModalVisible}
-      />
+      />  
       <AddReviewModal
         modalVisible={reviewModalOpen}
         setModalVisible={setReviewModalVisible}
@@ -217,6 +216,7 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   mainContent: {
+    backgroundColor: colours.primary_bg,
     height: "100%",
     width: "100%",
   },
@@ -229,6 +229,8 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontSize: 22,
     fontWeight: "800",
+    color: colours.text_primary,
+    fontFamily: "System",
   },
   infoRow: {
     flexDirection: "row",
@@ -245,9 +247,16 @@ const styles = StyleSheet.create({
   infoTextBold: {
     fontSize: 14,
     fontWeight: "700",
+    color: colours.text_primary,
+  },
+  infoTextMuted: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: colours.text_secondary,
   },
   descriptionText: {
     fontSize: 14,
+    color: "#605E70",
     lineHeight: 22,
     marginBottom: 24,
   },
