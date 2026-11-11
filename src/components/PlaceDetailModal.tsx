@@ -1,9 +1,10 @@
+import LocationPin from "@/components/LocationPin";
 import PhotoCarousel from "@/components/PhotoCarousel";
 import TagsSection from "@/components/TagsSection";
 import { useTheme } from "@/context/ThemeContext";
 import type { PlaceData } from "@/types/types";
 import { useRouter } from "expo-router";
-import { MapPin, Star } from "lucide-react-native";
+import { Star } from "lucide-react-native";
 import { useRef } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import ModalComponent, { type ModalHandle } from "./ModalComponent";
@@ -39,7 +40,9 @@ export default function PlaceDetailModal({
       onClose={() => setModalVisible(false)}
     >
       {/* Main info section */}
-      <View style={[styles.infoContainer, { borderBottomColor: colours.border_1 }]}>
+      <View
+        style={[styles.infoContainer, { borderBottomColor: colours.border_1 }]}
+      >
         {/* Title */}
         <Text style={[styles.placeTitle, { color: colours.text_primary }]}>
           {place.title}
@@ -49,28 +52,44 @@ export default function PlaceDetailModal({
         <View style={styles.infoRow}>
           {place.rating > -1 && (
             <View style={styles.infoItem}>
-              <Star color={colours.accent_1} fill={colours.accent_1} size={16} />
-              <Text style={[styles.infoTextBold, { color: colours.text_primary }]}>
+              <Star
+                color={colours.accent_1}
+                fill={colours.accent_1}
+                size={16}
+              />
+              <Text
+                style={[styles.infoTextBold, { color: colours.text_primary }]}
+              >
                 {place.rating.toFixed(1)}
               </Text>
-              <Text style={[styles.infoTextMuted, { color: colours.text_secondary }]}>
+              <Text
+                style={[
+                  styles.infoTextMuted,
+                  { color: colours.text_secondary },
+                ]}
+              >
                 ({reviews.length} Review{reviews.length > 1 && "s"})
               </Text>
             </View>
           )}
-          <View style={styles.infoItem}>
-            <MapPin color="#fff" fill={colours.accent_1} size={16} />
-            <Text style={[styles.infoTextBold, { color: colours.text_primary }]}>
-              {place.distance}
-            </Text>
-          </View>
+
+          {place.distance &&
+            place.distance !== "N/A" &&
+            place.distance !== "err" && (
+              <View style={styles.infoItem}>
+                <LocationPin size={16} color="#949FF1" holeColor="#FFFFFF" />
+                <Text style={styles.infoTextBold}>{place.distance}</Text>
+              </View>
+            )}
         </View>
 
         {/* Photos Carousel */}
         <PhotoCarousel photos={photos} />
 
         {/* Description */}
-        <Text style={[styles.descriptionText, { color: colours.text_secondary }]}>
+        <Text
+          style={[styles.descriptionText, { color: colours.text_secondary }]}
+        >
           {place.description}
         </Text>
       </View>
@@ -100,7 +119,9 @@ export default function PlaceDetailModal({
               });
             }}
           >
-            <Text style={[styles.detailButtonText, { color: colours.secondary_bg }]}>
+            <Text
+              style={[styles.detailButtonText, { color: colours.secondary_bg }]}
+            >
               View Full Details
             </Text>
           </Pressable>

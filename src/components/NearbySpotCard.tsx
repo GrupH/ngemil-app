@@ -1,7 +1,8 @@
+import LocationPin from "@/components/LocationPin";
 import Tag from "@/components/Tag";
 import { useTheme } from "@/context/ThemeContext";
 import { SpotProps } from "@/types/types";
-import { MapPin, Star } from "lucide-react-native";
+import { Star } from "lucide-react-native";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import ImagePlaceholder from "./ImagePlaceholder";
 
@@ -40,19 +41,22 @@ export default function NearbySpotCard({
         <View style={[styles.statsPill, { backgroundColor: colours.card_bg }]}>
           {rating > -1 && (
             <>
-              <Star color={colours.accent_1} fill={colours.accent_1} size={11} />
+              <Star
+                color={colours.accent_1}
+                fill={colours.accent_1}
+                size={11}
+              />
               <Text style={[styles.statsText, { color: colours.text_primary }]}>
                 {rating.toFixed(1)}
               </Text>
 
-              <Text style={[styles.bullet, { color: colours.text_secondary }]}>•</Text>
+              <Text style={[styles.bullet, { color: colours.text_secondary }]}>
+                •
+              </Text>
             </>
           )}
 
-          <View style={styles.iconContainer}>
-            <MapPin color={colours.accent_1} fill={colours.accent_1} size={11} />
-            <View style={[styles.iconHole, { backgroundColor: colours.card_bg }]} />
-          </View>
+          <LocationPin size={11} color="#949FF1" holeColor="#FFFFFF" />
           <Text style={[styles.statsText, { color: colours.text_primary }]}>
             {distance}
           </Text>
@@ -61,7 +65,10 @@ export default function NearbySpotCard({
 
       {/* Bottom Content Section */}
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colours.text_primary }]} numberOfLines={1}>
+        <Text
+          style={[styles.title, { color: colours.text_primary }]}
+          numberOfLines={1}
+        >
           {title}
         </Text>
 

@@ -1,5 +1,6 @@
 import AddReviewModal from "@/components/AddReviewModal";
 import BackButton from "@/components/BackButton";
+import LocationPin from "@/components/LocationPin";
 import PhotoCarousel from "@/components/PhotoCarousel";
 import ReviewsSection from "@/components/ReviewsSection";
 import PlaceDetailSkeleton from "@/components/Skeleton/PlaceDetailSkeleton";
@@ -14,7 +15,7 @@ import type { LocationByID, PlaceData } from "@/types/types";
 import { ExistingReviewType } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { MapPin, Star } from "lucide-react-native";
+import { Star } from "lucide-react-native";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -26,15 +27,18 @@ export default function PlaceDetailPage() {
   const router = useRouter();
 
   const { nearbyLocations } = useNearbyLocationContext();
-  const distanceToLoc = nearbyLocations.find((location) => location.id === id)?.distance;
+  const distanceToLoc = nearbyLocations.find(
+    (location) => location.id === id,
+  )?.distance;
 
   const [tagModalOpen, setTagModal] = useState<boolean>(false);
   const [reviewModalOpen, setReviewModal] = useState<boolean>(false);
   const [isEdit, setEdit] = useState<boolean>(false);
-  const [existingReviewData, setExistingReviewData] = useState<ExistingReviewType>({
-    rating: 0,
-    review: "",
-  });
+  const [existingReviewData, setExistingReviewData] =
+    useState<ExistingReviewType>({
+      rating: 0,
+      review: "",
+    });
 
   const { data: locationData, isLoading } = useQuery({
     queryKey: ["locationById", id],
@@ -43,7 +47,7 @@ export default function PlaceDetailPage() {
 
       if (error) throw error;
 
-      return parseLocationData(data);
+      return parseLocationData(data as any);
     },
   });
 
@@ -74,7 +78,9 @@ export default function PlaceDetailPage() {
       address: location.address,
       photos: location.location_images.map((item) => item.storage_path),
       reviews: location.location_ratings.map((item) => {
-        const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
+        const profile = Array.isArray(item.profiles)
+          ? item.profiles[0]
+          : item.profiles;
         return {
           id: item.id,
           user_id: item.user_id,
@@ -117,7 +123,7 @@ export default function PlaceDetailPage() {
     existingData: ExistingReviewType = {
       rating: 0,
       review: "",
-    }
+    },
   ) {
     setReviewModalVisible(true);
     setEdit(isEdit);
@@ -128,7 +134,9 @@ export default function PlaceDetailPage() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colours.primary_bg }}>
-      <View style={[styles.mainContent, { backgroundColor: colours.primary_bg }]}>
+      <View
+        style={[styles.mainContent, { backgroundColor: colours.primary_bg }]}
+      >
         <View style={styles.headerContainer}>
           <BackButton
             type="Back"
@@ -158,23 +166,35 @@ export default function PlaceDetailPage() {
           <View style={styles.infoRow}>
             {locationData?.rating && locationData?.rating > -1 && (
               <View style={styles.infoItem}>
-                <Star color={colours.accent_1} fill={colours.accent_1} size={16} />
-                <Text style={[styles.infoTextBold, { color: colours.text_primary }]}>
+                <Star
+                  color={colours.accent_1}
+                  fill={colours.accent_1}
+                  size={16}
+                />
+                <Text
+                  style={[styles.infoTextBold, { color: colours.text_primary }]}
+                >
                   {locationData?.rating.toFixed(1)}
                 </Text>
               </View>
             )}
 
-            <View style={styles.infoItem}>
-              <MapPin color="#fff" fill={colours.accent_1} size={16} />
-              <Text style={[styles.infoTextBold, { color: colours.text_primary }]}>
-                {locationData?.distance}
-              </Text>
-            </View>
+            {locationData?.distance &&
+              locationData.distance !== "N/A" &&
+              locationData.distance !== "err" && (
+                <View style={styles.infoItem}>
+                  <LocationPin size={16} color="#949FF1" holeColor="#FFFFFF" />
+                  <Text style={styles.infoTextBold}>
+                    {locationData?.distance}
+                  </Text>
+                </View>
+              )}
           </View>
 
           {/* Description */}
-          <Text style={[styles.descriptionText, { color: colours.text_secondary }]}>
+          <Text
+            style={[styles.descriptionText, { color: colours.text_secondary }]}
+          >
             {locationData?.description}
           </Text>
 
@@ -188,10 +208,7 @@ export default function PlaceDetailPage() {
           <TopMenusSection menuItems={locationData?.menuItems || []} />
 
           {/* REVIEWS Section */}
-          <ReviewsSection
-            reviews={reviews}
-            onAddReview={handleAddEditReview}
-          />
+          <ReviewsSection reviews={reviews} onAddReview={handleAddEditReview} />
         </ScrollView>
       </View>
       <TagVotingModal
@@ -251,4 +268,4 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 24,
   },
-});
+});
