@@ -7,29 +7,40 @@ import ProfileButton from "@/components/ProfileButton";
 import SearchBar from "@/components/SearchBar";
 import HomeSkeleton from "@/components/Skeleton/HomeSkeleton";
 import SpotOfTheDayCard from "@/components/SpotOfTheDayCard";
-import { colours } from "@/constants/style";
+import { useLocationContext } from "@/context/LocationContext";
 import { useNearbyLocationContext } from "@/context/NearbyLocationContext";
-import { useLocation } from "@/hooks/useLocation";
+import { useTheme } from "@/context/ThemeContext";
 import { getLocationById } from "@/lib/locations";
 import { PlaceData } from "@/types/types";
 import Mapbox from "@rnmapbox/maps";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
 
 const App = () => {
-  const [modalVisible, setModalVisible] = useState(false);
+  const { colours } = useTheme();
+  const [search, setSearch] = useState("");
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceData | null>(null);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const router = useRouter();
-  const { name: locationName, coords } = useLocation();
+  const { name: locationName, coords } = useLocationContext();
+  const queryClient = useQueryClient();
 
   const handleOpenPlace = async (place: PlaceData) => {
     setSelectedPlace(place);
     setModalVisible(true);
-    const { data, error } = await getLocationById(place.id); // TODO : Make a nerfed version of "getLocationById" to be less detailed with the fetch for modal
+    const { data, error } = await getLocationById(place.id);
 
     if (!error && data) {
       const images = data.location_images ?? [];
@@ -51,17 +62,43 @@ const App = () => {
     }
   };
 
-  const {nearbyLocations, isLoading} = useNearbyLocationContext()
+  const onRefresh = async () => {
+    setRefreshing(true);
 
-  const spotOfTheDay = nearbyLocations[0]; // TODO
+    const latKey = coords ? Math.round(coords.latitude * 200) / 200 : null;
+    const lngKey = coords ? Math.round(coords.longitude * 200) / 200 : null;
 
-  if (isLoading) return <HomeSkeleton />;
+    try {
+      await queryClient.refetchQueries({
+        queryKey: ["nearbyLocations", latKey, lngKey],
+      });
+    } catch (err) {
+      console.error(err); // TODO: REPLACE WITH TOAST
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const { nearbyLocations, isLoading } = useNearbyLocationContext();
+
+  const spotOfTheDay = nearbyLocations[0];
+
+  if (isLoading && !coords) return <HomeSkeleton fullPage={true} />;
 
   return (
-    <SafeAreaView style={styles.page}>
+    <SafeAreaView
+      style={[styles.page, { backgroundColor: colours.primary_bg }]}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colours.accent_1]}
+          />
+        }
       >
         {/* Header Section */}
         <View style={styles.headerRow}>
@@ -85,48 +122,58 @@ const App = () => {
           />
         </View>
 
-        {/* Spot of the Day Section */}
-        {spotOfTheDay && (
-          <View style={styles.spotSection}>
-            <Text style={styles.sectionTitle}>SPOT OF THE DAY</Text>
-            <SpotOfTheDayCard
-              imageUrl={spotOfTheDay.imageUrl}
-              title={spotOfTheDay.title}
-              rating={spotOfTheDay.rating}
-              distance={spotOfTheDay.distance}
-              tags={spotOfTheDay.tags}
-              description={spotOfTheDay.description}
-              onPress={() => handleOpenPlace(spotOfTheDay)}
-            />
-          </View>
-        )}
+        {isLoading ? (
+          <HomeSkeleton fullPage={false} />
+        ) : (
+          <>
+            {/* Spot of the Day Section */}
+            {spotOfTheDay && (
+              <View style={styles.spotSection}>
+                <Text style={[styles.sectionTitle, { color: colours.heading }]}>
+                  SPOT OF THE DAY
+                </Text>
+                <SpotOfTheDayCard
+                  imageUrl={spotOfTheDay.imageUrl}
+                  title={spotOfTheDay.title}
+                  rating={spotOfTheDay.rating}
+                  distance={spotOfTheDay.distance}
+                  tags={spotOfTheDay.tags}
+                  description={spotOfTheDay.description}
+                  onPress={() => handleOpenPlace(spotOfTheDay)}
+                />
+              </View>
+            )}
 
-        {/* Nearby Spots Section */}
-        <View style={styles.nearbySection}>
-          <Text style={styles.sectionTitle}>NEARBY</Text>
-          {nearbyLocations && nearbyLocations.length > 0 ? (
-            <View style={styles.gridContainer}>
-              {nearbyLocations.map((spot: PlaceData) => (
-                <View key={spot.id} style={styles.gridColumn}>
-                  <NearbySpotCard
-                    imageUrl={spot.imageUrl}
-                    title={spot.title}
-                    rating={spot.rating}
-                    distance={spot.distance}
-                    tags={spot.tags}
-                    description={spot.description}
-                    onPress={() => handleOpenPlace(spot)}
-                  />
+            {/* Nearby Spots Section */}
+            <View style={styles.nearbySection}>
+              <Text style={[styles.sectionTitle, { color: colours.heading }]}>
+                NEARBY
+              </Text>
+              {nearbyLocations && nearbyLocations.length > 0 ? (
+                <View style={styles.gridContainer}>
+                  {nearbyLocations.map((spot: PlaceData) => (
+                    <View key={spot.id} style={styles.gridColumn}>
+                      <NearbySpotCard
+                        imageUrl={spot.imageUrl}
+                        title={spot.title}
+                        rating={spot.rating}
+                        distance={spot.distance}
+                        tags={spot.tags}
+                        description={spot.description}
+                        onPress={() => handleOpenPlace(spot)}
+                      />
+                    </View>
+                  ))}
                 </View>
-              ))}
+              ) : (
+                <NoResults
+                  title="Nothing nearby the selected area"
+                  subtitle="Try widening your search radius or check back later."
+                />
+              )}
             </View>
-          ) : (
-            <NoResults
-              title="Nothing nearby the selected area"
-              subtitle="Try widening your search radius or check back later."
-            />
-          )}
-        </View>
+          </>
+        )}
       </ScrollView>
 
       {/* Place Detail Modal Popup */}
@@ -144,7 +191,6 @@ export default App;
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    backgroundColor: colours.primary_bg,
   },
   scrollContainer: {
     paddingHorizontal: 20,
@@ -156,17 +202,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-  },
-  mapCard: {
-    height: 240,
-    backgroundColor: colours.border_1,
-    borderRadius: 12,
-    borderColor: "#EDF0FE",
-    borderWidth: 2,
-    marginTop: 24,
-    padding: 16,
-    overflow: "hidden",
-    position: "relative",
   },
   searchBarContainer: {
     marginTop: 24,
@@ -183,7 +218,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: colours.heading,
     letterSpacing: 0.5,
   },
   gridContainer: {
@@ -194,25 +228,5 @@ const styles = StyleSheet.create({
   },
   gridColumn: {
     width: "47.5%",
-  },
-  openMapButton: {
-    position: "absolute",
-    bottom: 16,
-    right: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 100,
-    backgroundColor: colours.accent_1,
-    borderWidth: 2,
-    borderColor: colours.border_1,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    gap: 6,
-  },
-  openMapButtonText: {
-    color: colours.secondary_bg,
-    fontWeight: "800",
   },
 });

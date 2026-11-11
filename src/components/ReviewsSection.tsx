@@ -1,4 +1,4 @@
-import { colours } from "@/constants/style";
+import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/hooks/auth";
 import { deleteRating } from "@/lib/ratings";
 import type { Review } from "@/types/types";
@@ -20,16 +20,16 @@ export default function ReviewsSection({
   isModal = false,
   onAddReview,
 }: ReviewsSectionProps) {
+  const { colours } = useTheme();
   const hasReviews = reviews && reviews.length > 0;
 
   const { user } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
 
-  const [editReviewModal, setEditReviewModal] = useState<boolean>(false)
-  const editReviewModalRef = useRef(null)
+  const [editReviewModal, setEditReviewModal] = useState<boolean>(false);
+  const editReviewModalRef = useRef(null);
 
-  // Put the logged-in user's review first, keep the rest in their existing order
   const orderedReviews = useMemo(() => {
     if (!hasReviews || !user?.id) return reviews;
     const ownReview = reviews.find((review) => review.user_id === user.id);
@@ -42,34 +42,28 @@ export default function ReviewsSection({
   const userHasReview = !!reviews.find((review) => review.user_id === user?.id);
   const showAddButton = !isModal && !!onAddReview && !userHasReview;
 
-  function handleEditReviewModal(){
-    setEditReviewModal((prev) => !prev)
+  function handleEditReviewModal() {
+    setEditReviewModal((prev) => !prev);
   }
 
-  async function handleDeleteReview(){
-    if (!id){
-      console.log("no id", id)
-      return
-    }
+  async function handleDeleteReview() {
+    if (!id) return;
 
-    try{
-      const { error } = await deleteRating(id)
+    try {
+      const { error } = await deleteRating(id);
+      if (error) throw error;
 
-      if (error) throw error
-
-      setEditReviewModal(false)
-      reviews.filter((review) => review.user_id !== id)
-
+      setEditReviewModal(false);
       queryClient.invalidateQueries({ queryKey: ["locationById", id] });
       queryClient.invalidateQueries({ queryKey: ["locationRatings", id] });
-    } catch(err){
-      console.error("Failed to delete rating:", err); //TODO: error TOAST 
+    } catch (err) {
+      console.error("Failed to delete rating:", err);
     }
   }
 
   return (
     <View style={styles.sectionContainer}>
-      <Text style={styles.sectionHeading}>
+      <Text style={[styles.sectionHeading, { color: colours.heading }]}>
         {isModal ? "TOP REVIEWS" : "REVIEWS"}
       </Text>
 
@@ -83,11 +77,19 @@ export default function ReviewsSection({
                 key={review.id}
                 style={[
                   styles.reviewCard,
-                  isOwnReview && styles.ownReviewCard,
+                  {
+                    backgroundColor: colours.card_bg,
+                    borderColor: isOwnReview ? colours.accent_1 : colours.border_1,
+                  },
                 ]}
               >
                 <View style={styles.reviewHeader}>
-                  <View style={styles.avatarContainer}>
+                  <View
+                    style={[
+                      styles.avatarContainer,
+                      { backgroundColor: colours.border_1 },
+                    ]}
+                  >
                     {review.avatar ? (
                       <Image
                         source={{ uri: review.avatar }}
@@ -98,7 +100,7 @@ export default function ReviewsSection({
                     )}
                   </View>
                   <View style={styles.reviewUserMeta}>
-                    <Text style={styles.username}>
+                    <Text style={[styles.username, { color: colours.text_primary }]}>
                       {review.username}
                       {isOwnReview ? " (You)" : ""}
                     </Text>
@@ -106,32 +108,74 @@ export default function ReviewsSection({
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                           key={i}
-                          color={i < review.rating ? "#949FF1" : "#E5E5E5"}
-                          fill={i < review.rating ? "#949FF1" : "#E5E5E5"}
+                          color={i < review.rating ? colours.accent_1 : colours.border_1}
+                          fill={i < review.rating ? colours.accent_1 : colours.border_1}
                           size={12}
                         />
                       ))}
                     </View>
                   </View>
-                  {(isOwnReview && !isModal) && <Pressable onPress={handleEditReviewModal} style={{position:"absolute", right:0}}><EllipsisVertical size={18} color={colours.border_2}/></Pressable>}
-                </View>
-                <Text style={styles.reviewText}>{review.comment}</Text>
-
-                {(isOwnReview && editReviewModal && !isModal) &&
-                  <View style={styles.editReviewModal} ref={editReviewModalRef}>
-                      <Pressable style={styles.editReviewModalButtons} onPress={() => {onAddReview && 
-                        onAddReview(true, {rating: review.rating, review: review.comment})
-                        setEditReviewModal(false)
-                      }}>
-                      <Pencil size={20} color={colours.text_primary}/>
-                      <Text style={styles.editReviewModalButtonsText}>Edit</Text>
+                  {isOwnReview && !isModal && (
+                    <Pressable
+                      onPress={handleEditReviewModal}
+                      style={{ position: "absolute", right: 0 }}
+                    >
+                      <EllipsisVertical size={18} color={colours.text_secondary} />
                     </Pressable>
-                    <Pressable style={styles.editReviewModalButtons} onPress={handleDeleteReview}>
+                  )}
+                </View>
+                <Text style={[styles.reviewText, { color: colours.text_primary }]}>
+                  {review.comment}
+                </Text>
+
+                {isOwnReview && editReviewModal && !isModal && (
+                  <View
+                    style={[
+                      styles.editReviewModal,
+                      {
+                        backgroundColor: colours.card_bg,
+                        borderColor: colours.border_1,
+                      },
+                    ]}
+                    ref={editReviewModalRef}
+                  >
+                    <Pressable
+                      style={styles.editReviewModalButtons}
+                      onPress={() => {
+                        onAddReview &&
+                          onAddReview(true, {
+                            rating: review.rating,
+                            review: review.comment,
+                          });
+                        setEditReviewModal(false);
+                      }}
+                    >
+                      <Pencil size={20} color={colours.text_primary} />
+                      <Text
+                        style={[
+                          styles.editReviewModalButtonsText,
+                          { color: colours.text_primary },
+                        ]}
+                      >
+                        Edit
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={styles.editReviewModalButtons}
+                      onPress={handleDeleteReview}
+                    >
                       <Trash2 size={20} color={colours.text_primary} />
-                      <Text style={styles.editReviewModalButtonsText}>Delete</Text>
+                      <Text
+                        style={[
+                          styles.editReviewModalButtonsText,
+                          { color: colours.text_primary },
+                        ]}
+                      >
+                        Delete
+                      </Text>
                     </Pressable>
                   </View>
-                }
+                )}
               </View>
             );
           })}
@@ -142,18 +186,22 @@ export default function ReviewsSection({
         <Pressable
           style={({ pressed }) => [
             styles.addReviewCard,
+            {
+              backgroundColor: colours.card_bg,
+              borderColor: colours.border_1,
+            },
             pressed && styles.addReviewCardPressed,
           ]}
-          onPress={() => onAddReview && onAddReview(false, {rating: 0, review: ""})}
+          onPress={() => onAddReview && onAddReview(false, { rating: 0, review: "" })}
         >
-          <View style={styles.addReviewIconCircle}>
-            <Plus color={colours.secondary_bg} size={16} strokeWidth={2.5} />
+          <View style={[styles.addReviewIconCircle, { backgroundColor: colours.accent_1 }]}>
+            <Plus color="#FFFFFF" size={16} strokeWidth={2.5} />
           </View>
           <View style={styles.addReviewTextGroup}>
-            <Text style={styles.addReviewTitle}>
+            <Text style={[styles.addReviewTitle, { color: colours.text_primary }]}>
               {hasReviews ? "Write a review" : "Be the first to review"}
             </Text>
-            <Text style={styles.addReviewSubtitle}>
+            <Text style={[styles.addReviewSubtitle, { color: colours.text_secondary }]}>
               {hasReviews
                 ? "Share your take on this spot"
                 : "Help others discover this spot"}
@@ -173,7 +221,6 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: 12,
     fontWeight: "800",
-    color: colours.heading,
     letterSpacing: 1,
     marginBottom: 12,
   },
@@ -181,9 +228,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: colours.secondary_bg,
     borderRadius: 14,
-    borderColor: colours.border_1,
     borderWidth: 2,
     paddingVertical: 12,
     paddingHorizontal: 14,
@@ -196,7 +241,6 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: colours.accent_1,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -207,26 +251,19 @@ const styles = StyleSheet.create({
   addReviewTitle: {
     fontSize: 13,
     fontWeight: "700",
-    color: colours.text_primary,
   },
   addReviewSubtitle: {
     fontSize: 11,
     fontWeight: "500",
-    color: colours.text_secondary,
   },
   reviewsList: {
     gap: 12,
   },
   reviewCard: {
-    backgroundColor: colours.secondary_bg,
     borderRadius: 12,
-    borderColor: colours.border_1,
     borderWidth: 2,
     padding: 16,
     gap: 8,
-  },
-  ownReviewCard: {
-    borderColor: colours.accent_1,
   },
   reviewHeader: {
     flexDirection: "row",
@@ -237,7 +274,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#EDF0FE",
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
@@ -253,7 +289,6 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 12,
     fontWeight: "700",
-    color: colours.text_primary,
   },
   starsRow: {
     flexDirection: "row",
@@ -261,18 +296,16 @@ const styles = StyleSheet.create({
   },
   reviewText: {
     fontSize: 11,
-    color: colours.text_primary,
     lineHeight: 16,
   },
-  editReviewModal:{
-    position:"absolute",
-    top:-84,
-    right:20,
-    padding:12,
-    gap:12,
-    backgroundColor: colours.secondary_bg,
+  editReviewModal: {
+    position: "absolute",
+    top: 40,
+    right: 12,
+    zIndex: 20,
+    padding: 12,
+    gap: 12,
     borderWidth: 2,
-    borderColor: colours.border_1,
     borderRadius: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -280,15 +313,14 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 4,
   },
-  editReviewModalButtons:{
+  editReviewModalButtons: {
     gap: 16,
     paddingVertical: 4,
     paddingLeft: 2,
     paddingRight: 36,
-    flexDirection: "row"
+    flexDirection: "row",
   },
-  editReviewModalButtonsText:{
+  editReviewModalButtonsText: {
     fontSize: 16,
-    color: colours.text_primary
-  }
+  },
 });

@@ -1,8 +1,6 @@
-import { colours } from "@/constants/style";
+import { useTheme } from "@/context/ThemeContext";
 import { ScrollView, StyleSheet, View } from "react-native";
-import Bone, { SHIMMER_BASE } from "./Bone";
-
-// ─── Shared section skeletons ──────────────────────────────────────────────────
+import Bone from "./Bone";
 
 const CarouselSkeleton = () => (
   <View style={styles.carouselRow}>
@@ -65,23 +63,27 @@ const TopMenusSkeleton = () => (
   </View>
 );
 
-const ReviewSkeleton = () => (
-  <View style={styles.reviewItem}>
-    <View style={styles.row}>
-      <Bone width={36} height={36} borderRadius={18} />
-      <View style={styles.reviewMeta}>
-        <Bone width={100} height={13} borderRadius={4} />
-        <View style={styles.row}>
-          {[0, 1, 2, 3, 4].map((i) => (
-            <Bone key={i} width={12} height={12} borderRadius={3} />
-          ))}
+const ReviewSkeleton = () => {
+  const { colours } = useTheme();
+
+  return (
+    <View style={[styles.reviewItem, { borderTopColor: colours.border_1 }]}>
+      <View style={styles.row}>
+        <Bone width={36} height={36} borderRadius={18} />
+        <View style={styles.reviewMeta}>
+          <Bone width={100} height={13} borderRadius={4} />
+          <View style={styles.row}>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <Bone key={i} width={12} height={12} borderRadius={3} />
+            ))}
+          </View>
         </View>
       </View>
+      <Bone width="95%" height={12} borderRadius={4} style={{ marginTop: 8 }} />
+      <Bone width="80%" height={12} borderRadius={4} style={{ marginTop: 4 }} />
     </View>
-    <Bone width="95%" height={12} borderRadius={4} style={{ marginTop: 8 }} />
-    <Bone width="80%" height={12} borderRadius={4} style={{ marginTop: 4 }} />
-  </View>
-);
+  );
+};
 
 const ReviewsSkeleton = () => (
   <View style={styles.sectionBlock}>
@@ -91,54 +93,42 @@ const ReviewsSkeleton = () => (
   </View>
 );
 
-// ─── Variant: modal ────────────────────────────────────────────────────────────
-//
-// Fixed header (drag handle + title + info row + carousel + description)
-// sits above the ScrollView, mirroring PlaceDetailModal's infoContainer.
+const ModalSkeleton = () => {
+  const { colours } = useTheme();
 
-const ModalSkeleton = () => (
-  <>
-    {/* Fixed info section */}
-    <View style={styles.modalInfoContainer}>
-      <View style={styles.dragHandleContainer}>
-        <View style={styles.dragHandle} />
+  return (
+    <>
+      <View style={[styles.modalInfoContainer, { borderBottomColor: colours.border_1 }]}>
+        <View style={styles.dragHandleContainer}>
+          <View style={[styles.dragHandle, { backgroundColor: colours.drag_handle }]} />
+        </View>
+        <Bone width="60%" height={22} borderRadius={5} />
+        <InfoRowSkeleton />
+        <CarouselSkeleton />
+        <DescriptionSkeleton />
       </View>
-      <Bone width="60%" height={22} borderRadius={5} />
-      <InfoRowSkeleton />
-      <CarouselSkeleton />
-      <DescriptionSkeleton />
-    </View>
 
-    {/* Scrollable sections */}
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      scrollEnabled={false}
-      contentContainerStyle={styles.modalScrollContent}
-    >
-      <TagsSkeleton />
-      <TopMenusSkeleton />
-      <ReviewsSkeleton />
-      {/* "View Full Details" button */}
-      <Bone width="100%" height={44} borderRadius={12} />
-    </ScrollView>
-  </>
-);
-
-// ─── Variant: page ─────────────────────────────────────────────────────────────
-//
-// Fixed header row (back button + title) sits outside the ScrollView.
-// Everything else — carousel, info row, description, sections — scrolls,
-// matching the page's single ScrollView layout.
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        scrollEnabled={false}
+        contentContainerStyle={styles.modalScrollContent}
+      >
+        <TagsSkeleton />
+        <TopMenusSkeleton />
+        <ReviewsSkeleton />
+        <Bone width="100%" height={44} borderRadius={12} />
+      </ScrollView>
+    </>
+  );
+};
 
 const PageSkeleton = () => (
   <>
-    {/* Fixed page header */}
     <View style={styles.pageHeader}>
       <Bone width={36} height={36} borderRadius={10} />
       <Bone width="55%" height={22} borderRadius={5} />
     </View>
 
-    {/* Single scrollable body */}
     <ScrollView
       showsVerticalScrollIndicator={false}
       scrollEnabled={false}
@@ -154,31 +144,18 @@ const PageSkeleton = () => (
   </>
 );
 
-// ─── Unified export ────────────────────────────────────────────────────────────
-
 type PlaceDetailSkeletonProps = {
   variant: "modal" | "page";
 };
 
-/**
- * Skeleton for both PlaceDetailModal and the place-detail page.
- *
- * Modal — drop inside the modalContent Pressable:
- *   <PlaceDetailSkeleton variant="modal" />
- *
- * Page — drop inside the outer View (same level as the real Pressable content):
- *   <PlaceDetailSkeleton variant="page" />
- */
 const PlaceDetailSkeleton = ({ variant }: PlaceDetailSkeletonProps) =>
   variant === "modal" ? <ModalSkeleton /> : <PageSkeleton />;
 
 export default PlaceDetailSkeleton;
 
 const styles = StyleSheet.create({
-  // ── Modal-specific ──
   modalInfoContainer: {
     borderBottomWidth: 1,
-    borderBottomColor: colours.border_1,
     marginHorizontal: -24,
     paddingHorizontal: 24,
     marginTop: 16,
@@ -193,13 +170,10 @@ const styles = StyleSheet.create({
     width: 48,
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: SHIMMER_BASE,
   },
   modalScrollContent: {
     paddingVertical: 24,
   },
-
-  // ── Page-specific ──
   pageHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -209,8 +183,6 @@ const styles = StyleSheet.create({
   pageScrollContent: {
     padding: 24,
   },
-
-  // ── Shared section layout ──
   infoRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -247,7 +219,6 @@ const styles = StyleSheet.create({
   reviewItem: {
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: SHIMMER_BASE,
   },
   reviewMeta: {
     flex: 1,

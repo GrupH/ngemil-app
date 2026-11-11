@@ -1,7 +1,7 @@
 import LocationPin from "@/components/LocationPin";
 import PhotoCarousel from "@/components/PhotoCarousel";
 import TagsSection from "@/components/TagsSection";
-import { colours } from "@/constants/style";
+import { useTheme } from "@/context/ThemeContext";
 import type { PlaceData } from "@/types/types";
 import { useRouter } from "expo-router";
 import { Star } from "lucide-react-native";
@@ -24,6 +24,7 @@ export default function PlaceDetailModal({
 }: PlaceDetailModalProps) {
   const router = useRouter();
   const modalRef = useRef<ModalHandle>(null);
+  const { colours } = useTheme();
 
   if (!place) return null;
 
@@ -38,39 +39,44 @@ export default function PlaceDetailModal({
       visible={modalVisible}
       onClose={() => setModalVisible(false)}
     >
-      {/* Main info section (not scrollable) */}
-      <View style={styles.infoContainer}>
+      {/* Main info section */}
+      <View style={[styles.infoContainer, { borderBottomColor: colours.border_1 }]}>
         {/* Title */}
-        <Text style={styles.placeTitle}>{place.title}</Text>
+        <Text style={[styles.placeTitle, { color: colours.text_primary }]}>
+          {place.title}
+        </Text>
 
         {/* Info Row - Rating and Distance */}
         <View style={styles.infoRow}>
-          {place.rating > -1 && 
-          <View style={styles.infoItem}>
-            <Star color="#949FF1" fill="#949FF1" size={16} />
-            <Text style={styles.infoTextBold}>{place.rating.toFixed(1)}</Text>
-            <Text style={styles.infoTextMuted}>
-              ({reviews.length} Review{reviews.length > 1 && 's'})
-            </Text>
-          </View>
-          }
-          {place.distance && place.distance !== "N/A" && place.distance !== "err" && (
+          {place.rating > -1 && (
             <View style={styles.infoItem}>
-              <LocationPin size={16} color="#949FF1" holeColor="#FFFFFF" />
-              <Text style={styles.infoTextBold}>{place.distance}</Text>
+              <Star color={colours.accent_1} fill={colours.accent_1} size={16} />
+              <Text style={[styles.infoTextBold, { color: colours.text_primary }]}>
+                {place.rating.toFixed(1)}
+              </Text>
+              <Text style={[styles.infoTextMuted, { color: colours.text_secondary }]}>
+                ({reviews.length} Review{reviews.length > 1 && "s"})
+              </Text>
             </View>
           )}
+          <View style={styles.infoItem}>
+            <MapPin color="#fff" fill={colours.accent_1} size={16} />
+            <Text style={[styles.infoTextBold, { color: colours.text_primary }]}>
+              {place.distance}
+            </Text>
+          </View>
         </View>
 
         {/* Photos Carousel */}
         <PhotoCarousel photos={photos} />
 
         {/* Description */}
-        <Text style={styles.descriptionText}>{place.description}</Text>
+        <Text style={[styles.descriptionText, { color: colours.text_secondary }]}>
+          {place.description}
+        </Text>
       </View>
 
-      {/* Scrollable section, wrapped in a View rather than being a direct
-          child of the modal's content Pressable */}
+      {/* Scrollable section */}
       <View style={styles.scrollWrapper}>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -86,9 +92,8 @@ export default function PlaceDetailModal({
           <ReviewsSection reviews={reviews} isModal />
 
           <Pressable
-            style={styles.detailButton}
+            style={[styles.detailButton, { backgroundColor: colours.accent_1 }]}
             onPress={() => {
-              // Animate the sheet closed first, then navigate
               modalRef.current?.close();
               router.push({
                 pathname: "/place-detail/[id]",
@@ -96,7 +101,9 @@ export default function PlaceDetailModal({
               });
             }}
           >
-            <Text style={styles.detailButtonText}>View Full Details</Text>
+            <Text style={[styles.detailButtonText, { color: colours.secondary_bg }]}>
+              View Full Details
+            </Text>
           </Pressable>
         </ScrollView>
       </View>
@@ -107,7 +114,6 @@ export default function PlaceDetailModal({
 const styles = StyleSheet.create({
   infoContainer: {
     borderBottomWidth: 1,
-    borderBottomColor: colours.border_1,
     marginHorizontal: -24,
     paddingHorizontal: 24,
     marginTop: 16,
@@ -122,8 +128,6 @@ const styles = StyleSheet.create({
   placeTitle: {
     fontSize: 22,
     fontWeight: "800",
-    color: colours.text_primary,
-    fontFamily: "System",
   },
   infoRow: {
     flexDirection: "row",
@@ -140,27 +144,22 @@ const styles = StyleSheet.create({
   infoTextBold: {
     fontSize: 14,
     fontWeight: "700",
-    color: colours.text_primary,
   },
   infoTextMuted: {
     fontSize: 14,
     fontWeight: "500",
-    color: colours.text_secondary,
   },
   descriptionText: {
     fontSize: 14,
-    color: "#605E70",
     lineHeight: 22,
     marginBottom: 24,
   },
   detailButton: {
     width: "100%",
-    backgroundColor: colours.accent_1,
     borderRadius: 12,
     paddingVertical: 12,
   },
   detailButtonText: {
-    color: colours.secondary_bg,
     width: "100%",
     fontWeight: "700",
     textAlign: "center",
