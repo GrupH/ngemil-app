@@ -1,4 +1,4 @@
-import { colours } from "@/constants/style";
+import { useTheme } from "@/context/ThemeContext";
 import type { MenuItem } from "@/types/types";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -7,11 +7,13 @@ type TopMenusSectionProps = {
 };
 
 export default function TopMenusSection({ menuItems }: TopMenusSectionProps) {
+  const { colours } = useTheme();
+
   if (!menuItems || menuItems.length === 0) return null;
 
   return (
     <View style={styles.sectionContainer}>
-      <Text style={styles.sectionHeading}>TOP MENUS</Text>
+      <Text style={[styles.sectionHeading, { color: colours.heading }]}>TOP MENUS</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -19,15 +21,34 @@ export default function TopMenusSection({ menuItems }: TopMenusSectionProps) {
         contentContainerStyle={styles.menuContent}
       >
         {menuItems.map((item) => (
-          <View key={item.id} style={styles.menuCard}>
-            <View style={styles.menuImageContainer}>
+          <View
+            key={item.id}
+            style={[
+              styles.menuCard,
+              {
+                backgroundColor: colours.card_bg,
+                borderColor: colours.border_1,
+              },
+            ]}
+          >
+            <View
+              style={[
+                styles.menuImageContainer,
+                { backgroundColor: colours.border_1 },
+              ]}
+            >
               <Image source={{ uri: item.imageUrl }} style={styles.menuImage} />
             </View>
             <View style={styles.menuInfo}>
-              <Text style={styles.menuName} numberOfLines={2}>
+              <Text
+                style={[styles.menuName, { color: colours.text_primary }]}
+                numberOfLines={2}
+              >
                 {item.name}
               </Text>
-              <Text style={styles.menuPrice}>{item.price}</Text>
+              <Text style={[styles.menuPrice, { color: colours.accent_1 }]}>
+                {item.price}
+              </Text>
             </View>
           </View>
         ))}
@@ -43,7 +64,6 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: 12,
     fontWeight: "800",
-    color: colours.heading,
     letterSpacing: 1,
     marginBottom: 12,
   },
@@ -56,16 +76,13 @@ const styles = StyleSheet.create({
   },
   menuCard: {
     width: 130,
-    backgroundColor: "#F9F9F6",
     borderRadius: 12,
     overflow: "hidden",
     borderWidth: 2,
-    borderColor: "#EDF0FE",
   },
   menuImageContainer: {
     width: "100%",
     height: 90,
-    backgroundColor: "#EDF0FE",
   },
   menuImage: {
     width: "100%",
@@ -79,13 +96,11 @@ const styles = StyleSheet.create({
   menuName: {
     fontSize: 12,
     fontWeight: "700",
-    color: colours.text_primary,
     lineHeight: 16,
     height: 32,
   },
   menuPrice: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#949FF1",
   },
 });
